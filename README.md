@@ -1,35 +1,86 @@
 # Claude Usage
 
-Claude Usage is a browser extension that shows your Claude consumption at a glance in two buckets:
+Claude Usage is a Manifest V3 browser extension for Claude.ai that shows your current usage directly from the toolbar popup.
 
-- **Current Session**: percentage used in the active session window.
-- **Weekly Limit**: percentage used from the weekly quota.
+It displays two usage buckets:
 
-## UI preview
+- **Current Session**: the current short-window Claude usage percentage.
+- **Weekly Limit**: the weekly Claude usage percentage.
 
-The popup uses a compact dark theme and includes:
+## How it works
 
-- Header with extension name and refresh button.
-- Two usage cards with progress bars and color states:
-  - green (<50%)
-  - yellow (50–79%)
-  - red (80%+)
-- Reset countdown text (for example, `Resets in 2h 15m`).
-- Footer with “last updated” and a quick link to `claude.ai/settings/usage`.
-- Empty state (“No usage data yet”) with a CTA button to open the usage page.
+The extension now refreshes usage primarily through Claude.ai's internal authenticated API, which makes it much more reliable than reading the visible settings page.
 
-## Run locally (Chrome / Edge / Brave)
+- Automatic refresh runs every 5 minutes.
+- Manual refresh is available from the popup.
+- The popup shows the extension version so you can confirm which local build is loaded.
+- The usage page parser still exists as a fallback path, but API-based refresh is the primary source.
+
+## Features
+
+- Toolbar badge showing the current session percentage.
+- Popup with current session and weekly usage cards.
+- Reset countdowns when Claude returns reset timestamps.
+- Manual refresh button.
+- Quick link to `https://claude.ai/settings/usage`.
+- Local storage caching so the last known value remains visible between refreshes.
+
+## Browser support
+
+This extension is designed for Chromium-based browsers that support Chrome Extensions Manifest V3, including:
+
+- Google Chrome
+- Microsoft Edge
+- Brave
+
+The codebase uses the standard `chrome.*` extension APIs, so the local development flow is similar across all three browsers.
+
+## Run locally
+
+Load the unpacked extension from the inner `claudetrack/` directory in this repository.
+
+The extension files are here:
+
+- `claudetrack/manifest.json`
+- `claudetrack/background.js`
+- `claudetrack/popup.html`
+
+### Chrome
 
 1. Open `chrome://extensions`.
 2. Enable **Developer mode**.
-3. Click **Load unpacked** and select the `claudetrack/` folder.
-4. Click the extension icon to open the popup.
-5. If no data is shown yet, use **Open claude.ai/settings/usage**, then return to the popup.
+3. Click **Load unpacked**.
+4. Select the `claudetrack/` folder inside this repo.
+5. Pin the extension if you want fast access from the toolbar.
+
+### Edge
+
+1. Open `edge://extensions`.
+2. Enable **Developer mode**.
+3. Click **Load unpacked**.
+4. Select the `claudetrack/` folder inside this repo.
+5. Pin the extension from the Edge toolbar if needed.
+
+### Brave
+
+1. Open `brave://extensions`.
+2. Enable **Developer mode**.
+3. Click **Load unpacked**.
+4. Select the `claudetrack/` folder inside this repo.
+5. Pin the extension from the Brave toolbar if needed.
+
+## Notes for local testing
+
+- You must already be logged in to `https://claude.ai`.
+- After loading the extension, open the popup and confirm the version shown there matches the current build.
+- Automatic refresh should work without manually opening the usage page.
+- If Claude changes its internal API behavior, the fallback parser may still help, but the primary refresh path is the API integration in `background.js`.
 
 ## Project structure
 
+- `claudetrack/manifest.json`: extension manifest and permissions.
+- `claudetrack/background.js`: automatic refresh logic, Claude API fetching, storage, and badge updates.
+- `claudetrack/content.js`: fallback usage-page parsing logic for `claude.ai/settings/usage`.
 - `claudetrack/popup.html`: popup markup.
-- `claudetrack/popup.css`: popup styles and theme.
-- `claudetrack/popup.js`: popup rendering, refresh flow, storage listeners.
-- `claudetrack/background.js`: background polling and refresh messaging.
-- `claudetrack/content.js`: usage-page extraction logic on `claude.ai`.
+- `claudetrack/popup.css`: popup styling.
+- `claudetrack/popup.js`: popup rendering, manual refresh flow, and storage listeners.
