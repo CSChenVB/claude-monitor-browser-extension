@@ -43,9 +43,9 @@ function initPlan() {
     if (proLink) {
       proLink.addEventListener('click', (e) => {
         e.preventDefault();
-        // TODO: open upgrade page when monetisation is ready
-        chrome.tabs.create({ url: 'https://github.com/msadofschi/claudetrack', active: true });
-        window.close();
+        // TODO: replace with your upgrade/pricing page URL when ready
+        // chrome.tabs.create({ url: 'https://your-upgrade-page.com', active: true });
+        // window.close();
       });
     }
   }
