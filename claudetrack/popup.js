@@ -1,23 +1,28 @@
-// ─── ClaudeTrack — Popup Script ────────────────────────────────────────────
+// ─── Claude Usage Monitor — Popup Script ────────────────────────────────────
+// Plan tier: 'free' | 'pro'
+// Pro features (historial + notificaciones) are stubbed here — ready to unlock.
 
 const USAGE_URL = 'https://claude.ai/settings/usage';
+const PLAN      = 'free';   // Change to 'pro' when monetisation is enabled
 
 // ── DOM refs ──────────────────────────────────────────────────────────────
 
 const $  = id => document.getElementById(id);
-const mainEl       = $('main');
-const noDataEl     = $('noData');
-const refreshBtn   = $('refreshBtn');
-const lastUpdated  = $('lastUpdated');
-const appVersionEl = $('appVersion');
-const openUsageBtn = $('openUsageBtn');
+const mainEl        = $('main');
+const noDataEl      = $('noData');
+const refreshBtn    = $('refreshBtn');
+const lastUpdated   = $('lastUpdated');
+const appVersionEl  = $('appVersion');
+const openUsageBtn  = $('openUsageBtn');
 const openUsagePage = $('openUsagePage');
+const proTeaser     = $('proTeaser');
+const proLink       = $('proLink');
 
 // Session
-const sessionPct    = $('sessionPct');
-const sessionBar    = $('sessionBar');
-const sessionReset  = $('sessionReset');
-const sessionLabel  = $('sessionLabel');
+const sessionPct   = $('sessionPct');
+const sessionBar   = $('sessionBar');
+const sessionReset = $('sessionReset');
+const sessionLabel = $('sessionLabel');
 
 // Weekly
 const weeklyPct   = $('weeklyPct');
@@ -25,17 +30,44 @@ const weeklyBar   = $('weeklyBar');
 const weeklyReset = $('weeklyReset');
 const weeklyLabel = $('weeklyLabel');
 
+// ── Plan management (Pro stub) ────────────────────────────────────────────
+
+function initPlan() {
+  if (PLAN === 'pro') {
+    // Pro: hide teaser, features are active
+    if (proTeaser) proTeaser.style.display = 'none';
+    initProFeatures();
+  } else {
+    // Free: show teaser after data loads
+    if (proTeaser) proTeaser.style.display = 'flex';
+    if (proLink) {
+      proLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        // TODO: open upgrade page when monetisation is ready
+        chrome.tabs.create({ url: 'https://github.com/msadofschi/claudetrack', active: true });
+        window.close();
+      });
+    }
+  }
+}
+
+// Pro feature stubs — implement when tier is unlocked
+function initProFeatures() {
+  // TODO: load usage history chart
+  // TODO: initialise notification thresholds UI
+}
+
 // ── Colour helpers ────────────────────────────────────────────────────────
 
 function colorClass(pct) {
-  if (pct < 50)      return 'green';
-  if (pct < 80)      return 'yellow';
+  if (pct < 50) return 'green';
+  if (pct < 80) return 'yellow';
   return 'red';
 }
 
 function applyColor(pctEl, barEl, pct) {
   const cls = colorClass(pct);
-  ['green','yellow','red'].forEach(c => {
+  ['green', 'yellow', 'red'].forEach(c => {
     pctEl.classList.toggle(c, c === cls);
     barEl.classList.toggle(c, c === cls);
   });
@@ -60,17 +92,17 @@ function formatTimeUntil(epochMs) {
 
 function formatTimestamp(epochMs) {
   if (!epochMs) return 'Never updated';
-  const d = new Date(epochMs);
-  const now = new Date();
+  const now  = new Date();
+  const d    = new Date(epochMs);
   const diffMin = Math.round((now - d) / 60000);
 
-  if (diffMin < 1)  return 'Just updated';
-  if (diffMin < 60) return `Updated ${diffMin}m ago`;
+  if (diffMin < 1)   return 'Just updated';
+  if (diffMin < 60)  return `Updated ${diffMin}m ago`;
 
   const diffH = Math.floor(diffMin / 60);
   if (diffH < 24) return `Updated ${diffH}h ago`;
 
-  return `Updated ${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+  return `Updated ${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 }
 
 // ── Render ────────────────────────────────────────────────────────────────
@@ -83,9 +115,7 @@ function render(data) {
   }
 
   const { session, weekly, lastUpdated: ts } = data;
-
-  const hasSomething =
-    session?.percentage !== null || weekly?.percentage !== null;
+  const hasSomething = session?.percentage !== null || weekly?.percentage !== null;
 
   if (!hasSomething) {
     mainEl.style.display   = 'none';
@@ -96,12 +126,12 @@ function render(data) {
   mainEl.style.display   = 'block';
   noDataEl.style.display = 'none';
 
-  // ── Session ────────────────────────────────────────────────────────
+  // ── Session ──────────────────────────────────────────────────────────
   const sPct = session?.percentage ?? null;
   if (sPct !== null) {
     const p = Math.min(100, Math.max(0, Math.round(sPct)));
-    sessionPct.textContent  = `${p}%`;
-    sessionBar.style.width  = `${p}%`;
+    sessionPct.textContent = `${p}%`;
+    sessionBar.style.width = `${p}%`;
     applyColor(sessionPct, sessionBar, sPct);
   } else {
     sessionPct.textContent = '—';
@@ -111,7 +141,7 @@ function render(data) {
   sessionReset.textContent = sReset || (session?.label ? '' : 'Reset time unknown');
   sessionLabel.textContent = (!sReset && session?.label) ? session.label : '';
 
-  // ── Weekly ─────────────────────────────────────────────────────────
+  // ── Weekly ───────────────────────────────────────────────────────────
   const wPct = weekly?.percentage ?? null;
   if (wPct !== null) {
     const p = Math.min(100, Math.max(0, Math.round(wPct)));
@@ -126,7 +156,7 @@ function render(data) {
   weeklyReset.textContent = wReset || (weekly?.label ? '' : 'Reset day unknown');
   weeklyLabel.textContent = (!wReset && weekly?.label) ? weekly.label : '';
 
-  // ── Timestamp ──────────────────────────────────────────────────────
+  // ── Timestamp ────────────────────────────────────────────────────────
   lastUpdated.textContent = formatTimestamp(ts);
 }
 
@@ -153,7 +183,6 @@ function triggerRefresh() {
   refreshBtn.classList.add('spinning');
 
   chrome.runtime.sendMessage({ type: 'REFRESH' }, () => {
-    // Give up to 8 s for the data to arrive, then re-read storage
     let waited = 0;
     const poll = setInterval(() => {
       waited += 500;
@@ -181,15 +210,14 @@ function openUsage() {
 openUsageBtn?.addEventListener('click', openUsage);
 openUsagePage?.addEventListener('click', openUsage);
 
-// Listen for storage changes while popup is open (data arrives from background)
+// Listen for storage changes while popup is open
 chrome.storage.onChanged.addListener((changes) => {
   if (changes.claudeUsage) {
     render(changes.claudeUsage.newValue || null);
-    refreshBtn.classList.remove('spinning');
-    refreshInFlight = false;
   }
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────
 
 loadData();
+initPlan();

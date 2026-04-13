@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Claude Usage</title>
+  <title>Claude Usage Monitor</title>
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
@@ -12,29 +12,29 @@
   <div class="header">
     <div class="header-left">
       <div class="logo">
-        <!-- Stylised bar-chart icon -->
-        <svg viewBox="0 0 13 13" xmlns="http://www.w3.org/2000/svg">
-          <rect x="1"  y="5"  width="3" height="7" rx="1"/>
-          <rect x="5"  y="2"  width="3" height="10" rx="1"/>
-          <rect x="9"  y="7"  width="3" height="5" rx="1"/>
+        <!-- Pulse icon matching the extension logo -->
+        <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" fill="none">
+          <polyline points="2,10 5,10 7.5,5 10,15 12.5,7 15,10 18,10"
+            stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
       <div class="title-block">
-        <span class="app-name">Claude Usage</span>
+        <span class="app-name">Claude Usage Monitor</span>
         <span class="app-version" id="appVersion">v-</span>
       </div>
     </div>
-    <button class="refresh-btn" id="refreshBtn" title="Refresh usage data">
-      <!-- Refresh icon -->
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="23 4 23 10 17 10"/>
-        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-      </svg>
-    </button>
+    <div class="header-actions">
+      <button class="refresh-btn" id="refreshBtn" title="Refresh usage data">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"/>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
-  <!-- ── Content — shown when data available ─────────────────────────── -->
+  <!-- ── Main content (when data is available) ───────────────────────── -->
   <div id="main" style="display:none">
 
     <div class="cards">
@@ -42,19 +42,20 @@
       <!-- Session card -->
       <div class="card" id="sessionCard">
         <div class="card-header">
-          <span class="card-title">Current Session</span>
+          <div class="card-title-row">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span class="card-title">Current Session</span>
+          </div>
           <span class="card-pct" id="sessionPct">—</span>
         </div>
         <div class="progress-track">
           <div class="progress-fill" id="sessionBar" style="width:0%"></div>
         </div>
         <div class="reset-row">
-          <!-- Clock icon -->
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-          </svg>
           <span id="sessionReset">—</span>
         </div>
         <div class="reset-label" id="sessionLabel"></div>
@@ -63,27 +64,39 @@
       <!-- Weekly card -->
       <div class="card" id="weeklyCard">
         <div class="card-header">
-          <span class="card-title">Weekly Limit</span>
+          <div class="card-title-row">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8"  y1="2" x2="8"  y2="6"/>
+              <line x1="3"  y1="10" x2="21" y2="10"/>
+            </svg>
+            <span class="card-title">Weekly Limit</span>
+          </div>
           <span class="card-pct" id="weeklyPct">—</span>
         </div>
         <div class="progress-track">
           <div class="progress-fill" id="weeklyBar" style="width:0%"></div>
         </div>
         <div class="reset-row">
-          <!-- Calendar icon -->
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2"/>
-            <line x1="16" y1="2" x2="16" y2="6"/>
-            <line x1="8"  y1="2" x2="8"  y2="6"/>
-            <line x1="3"  y1="10" x2="21" y2="10"/>
-          </svg>
           <span id="weeklyReset">—</span>
         </div>
         <div class="reset-label" id="weeklyLabel"></div>
       </div>
 
     </div><!-- /cards -->
+
+    <!-- ── Pro teaser (hidden for now, shown to future Pro users) ──────── -->
+    <div class="pro-teaser" id="proTeaser" style="display:none">
+      <div class="pro-teaser-inner">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+        <span>Usage history &amp; alerts — <a href="#" id="proLink">Upgrade to Pro</a></span>
+      </div>
+    </div>
 
     <!-- ── Footer ────────────────────────────────────────────────────── -->
     <div class="footer">
@@ -104,11 +117,9 @@
   <!-- ── No-data placeholder ─────────────────────────────────────────── -->
   <div id="noData">
     <div class="no-data">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none"
-           stroke="#5a5a70" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      <svg width="38" height="38" viewBox="0 0 24 24" fill="none"
+           stroke="#5a5a70" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="2,12 5,12 7.5,6 10,18 12.5,9 15,12 18,12"/>
       </svg>
       <p>No usage data yet.<br/>Click below to load your stats.</p>
       <button class="open-usage-btn" id="openUsageBtn">
@@ -118,10 +129,10 @@
           <polyline points="15 3 21 3 21 9"/>
           <line x1="10" y1="14" x2="21" y2="3"/>
         </svg>
-        Open claude.ai/settings/usage
+        Open Claude Usage Page
       </button>
     </div>
-  </div>
+  </div><!-- /noData -->
 
   <script src="popup.js"></script>
 </body>
