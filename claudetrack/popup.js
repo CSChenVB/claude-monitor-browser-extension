@@ -149,11 +149,12 @@ function render(data) {
     sessionPct.textContent = '—';
   }
 
-  const sReset = formatTimeUntil(session?.resetTime);
-  sessionReset.textContent = sReset || (session?.label ? '' : 'Reset time unknown');
-  sessionLabel.textContent = sReset
-    ? (formatStartedAgo(session?.resetTime) || '')
-    : (session?.label || '');
+  const sReset   = formatTimeUntil(session?.resetTime);
+  const sStarted = sReset ? formatStartedAgo(session?.resetTime) : '';
+  sessionReset.textContent = sReset
+    ? (sStarted ? `${sReset} · ${sStarted}` : sReset)
+    : (session?.label || 'Reset time unknown');
+  sessionLabel.textContent = '';
 
   // ── Weekly ───────────────────────────────────────────────────────────
   const wPct = weekly?.percentage ?? null;
@@ -167,10 +168,11 @@ function render(data) {
   }
 
   const wReset = formatTimeUntil(weekly?.resetTime);
-  weeklyReset.textContent = wReset || (weekly?.label ? '' : 'Reset day unknown');
-  weeklyLabel.textContent = wReset
-    ? (formatResetDate(weekly?.resetTime) || '')
-    : (weekly?.label || '');
+  const wDate  = wReset ? formatResetDate(weekly?.resetTime) : '';
+  weeklyReset.textContent = wReset
+    ? (wDate ? `${wReset} · ${wDate}` : wReset)
+    : (weekly?.label || 'Reset day unknown');
+  weeklyLabel.textContent = '';
 
   // ── Timestamp ────────────────────────────────────────────────────────
   lastUpdated.textContent = formatTimestamp(ts);
