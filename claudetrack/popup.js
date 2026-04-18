@@ -67,6 +67,14 @@ function applyColor(pctEl, barEl, pct) {
 
 // ── Time formatting ───────────────────────────────────────────────────────
 
+function formatResetDate(epochMs) {
+  if (!epochMs) return '';
+  const d = new Date(epochMs);
+  const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
+  const month   = d.toLocaleDateString('en-US', { month: 'long' });
+  return `${weekday} ${d.getDate()} ${month}`;
+}
+
 function formatStartedAgo(resetEpoch) {
   if (!resetEpoch) return '';
   const SESSION_MS = 5 * 60 * 60 * 1000;
@@ -141,11 +149,12 @@ function render(data) {
     sessionPct.textContent = '—';
   }
 
-  const sReset = formatTimeUntil(session?.resetTime);
-  sessionReset.textContent = sReset || (session?.label ? '' : 'Reset time unknown');
-  sessionLabel.textContent = sReset
-    ? (formatStartedAgo(session?.resetTime) || '')
-    : (session?.label || '');
+  const sReset   = formatTimeUntil(session?.resetTime);
+  const sStarted = sReset ? formatStartedAgo(session?.resetTime) : '';
+  sessionReset.textContent = sReset
+    ? (sStarted ? `${sReset} · ${sStarted}` : sReset)
+    : (session?.label || 'Reset time unknown');
+  sessionLabel.textContent = '';
 
   // ── Weekly ───────────────────────────────────────────────────────────
   const wPct = weekly?.percentage ?? null;
@@ -159,8 +168,11 @@ function render(data) {
   }
 
   const wReset = formatTimeUntil(weekly?.resetTime);
-  weeklyReset.textContent = wReset || (weekly?.label ? '' : 'Reset day unknown');
-  weeklyLabel.textContent = (!wReset && weekly?.label) ? weekly.label : '';
+  const wDate  = wReset ? formatResetDate(weekly?.resetTime) : '';
+  weeklyReset.textContent = wReset
+    ? (wDate ? `${wReset} · ${wDate}` : wReset)
+    : (weekly?.label || 'Reset day unknown');
+  weeklyLabel.textContent = '';
 
   // ── Timestamp ────────────────────────────────────────────────────────
   lastUpdated.textContent = formatTimestamp(ts);
