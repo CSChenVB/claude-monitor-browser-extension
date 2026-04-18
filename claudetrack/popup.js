@@ -67,6 +67,14 @@ function applyColor(pctEl, barEl, pct) {
 
 // ── Time formatting ───────────────────────────────────────────────────────
 
+function formatResetDate(epochMs) {
+  if (!epochMs) return '';
+  const d = new Date(epochMs);
+  const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
+  const month   = d.toLocaleDateString('en-US', { month: 'long' });
+  return `${weekday} ${d.getDate()} ${month}`;
+}
+
 function formatStartedAgo(resetEpoch) {
   if (!resetEpoch) return '';
   const SESSION_MS = 5 * 60 * 60 * 1000;
@@ -160,7 +168,9 @@ function render(data) {
 
   const wReset = formatTimeUntil(weekly?.resetTime);
   weeklyReset.textContent = wReset || (weekly?.label ? '' : 'Reset day unknown');
-  weeklyLabel.textContent = (!wReset && weekly?.label) ? weekly.label : '';
+  weeklyLabel.textContent = wReset
+    ? (formatResetDate(weekly?.resetTime) || '')
+    : (weekly?.label || '');
 
   // ── Timestamp ────────────────────────────────────────────────────────
   lastUpdated.textContent = formatTimestamp(ts);
