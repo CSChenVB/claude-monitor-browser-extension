@@ -21,7 +21,7 @@ https://msadofschi.github.io/claude-usage-monitor/
 
 Know when you're getting close to your Claude limit — without opening the settings page.
 
-Claude Usage Monitor shows your session and weekly usage directly in your browser toolbar, with a color-coded badge that updates automatically every 5 minutes.
+Claude Usage Monitor shows your session and weekly usage directly in your browser toolbar, with a color-coded badge that updates automatically at a configurable interval (default: every 5 minutes).
 
 **What you see at a glance:**
 - Session usage percentage (current 5-hour window)
@@ -35,7 +35,7 @@ The extension reads your usage data directly from Claude.ai using your existing 
 **Permissions used and why:**
 - *claude.ai access* — to read usage data from the Claude API using your existing session
 - *Storage* — to persist usage data between sessions so the badge survives browser restarts
-- *Alarms* — to schedule a refresh every 5 minutes
+- *Alarms* — to schedule automatic refreshes at a configurable interval (default: every 5 minutes)
 - *Scripting* — to parse the Claude usage settings page as a fallback when the API is unavailable
 
 **Privacy:**
