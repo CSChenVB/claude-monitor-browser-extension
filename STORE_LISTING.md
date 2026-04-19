@@ -72,7 +72,7 @@ Minimum: 1 screenshot at **1280×800px** or **640×400px**
 
 ```
 cd claudetrack/
-zip -r ../claude-usage-monitor-v1.2.0.zip . --exclude "*.DS_Store"
+zip -r ../claude-usage-monitor-v1.2.1.zip . --exclude "*.DS_Store"
 ```
 
 Or on Windows: select all files inside the `claudetrack/` folder → right-click → Compress to ZIP.
