@@ -276,8 +276,8 @@
       if (/\bsesion actual\b|\bcurrent session\b/i.test(norm)) continue;
       matching.push(el);
     }
-    console.log('[ClaudeTrack] design DOM candidates (with "claude design", len<=400):', debugDesignEls);
-    console.log('[ClaudeTrack] design matching (with % and no cross-section):', matching.map(e => ({
+    console.warn('[ClaudeTrack] design candidates (has "claude design", len<=400):', debugDesignEls);
+    console.warn('[ClaudeTrack] design matching (has % + no cross-section):', matching.map(e => ({
       tag: e.tagName, len: (e.textContent||'').length, text: (e.textContent||'').slice(0, 120)
     })));
     if (matching.length === 0) return null;
@@ -288,7 +288,7 @@
     if (pct === null) return null;
     const lines = content.split('\n').map(l => l.trim()).filter(Boolean);
     const resetLine = lines.find(l => RESET_PATTERNS.test(normalizeText(l)));
-    console.log('[ClaudeTrack] design result:', { pct, resetLine, content: content.slice(0, 150) });
+    console.warn('[ClaudeTrack] design result:', { pct, resetLine, content: content.slice(0, 150) });
     return {
       percentage: pct,
       resetTime: resetLine ? parseResetTime(resetLine) : null,
@@ -449,7 +449,9 @@
   // ── Entry point ───────────────────────────────────────────────────────
 
   function run() {
+    console.warn('[ClaudeTrack] content.js running, body text length:', document.body?.innerText?.length);
     const data = parseUsage();
+    console.warn('[ClaudeTrack] parsed data:', JSON.stringify({ session: data.session, weekly: data.weekly, design: data.design }));
     chrome.runtime.sendMessage({ type: 'USAGE_DATA', data });
   }
 

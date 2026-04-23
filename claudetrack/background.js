@@ -105,6 +105,8 @@ async function refreshUsageFromApi() {
       }
     }
 
+    console.warn('[ClaudeTrack] raw API usage keys:', Object.keys(usage || {}));
+    console.warn('[ClaudeTrack] raw API usage:', JSON.stringify(usage).slice(0, 500));
     const data = mapApiUsageToStoredShape(usage);
     const stored = await persistAndBadge(data);
     return {
