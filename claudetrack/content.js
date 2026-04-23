@@ -262,6 +262,7 @@
    */
   function parseDesignFromDOM() {
     const matching = [];
+    let debugDesignEls = [];
     for (const el of document.querySelectorAll('*')) {
       const tag = el.tagName;
       if (!tag || tag === 'SCRIPT' || tag === 'STYLE' || tag === 'HEAD') continue;
@@ -269,14 +270,17 @@
       if (content.length < 3 || content.length > 400) continue;
       const norm = normalizeText(content);
       if (!DESIGN_PATTERNS.some(p => p.test(norm))) continue;
+      debugDesignEls.push({ tag, len: content.length, norm: norm.slice(0, 120) });
       if (extractPct(content) === null) continue;
-      // Stop if we've climbed into a broader section
       if (/\btodos los modelos\b|\ball models\b/i.test(norm)) continue;
       if (/\bsesion actual\b|\bcurrent session\b/i.test(norm)) continue;
       matching.push(el);
     }
+    console.log('[ClaudeTrack] design DOM candidates (with "claude design", len<=400):', debugDesignEls);
+    console.log('[ClaudeTrack] design matching (with % and no cross-section):', matching.map(e => ({
+      tag: e.tagName, len: (e.textContent||'').length, text: (e.textContent||'').slice(0, 120)
+    })));
     if (matching.length === 0) return null;
-    // Most specific = shortest textContent
     matching.sort((a, b) => (a.textContent || '').length - (b.textContent || '').length);
     const best = matching[0];
     const content = best.textContent || '';
@@ -284,6 +288,7 @@
     if (pct === null) return null;
     const lines = content.split('\n').map(l => l.trim()).filter(Boolean);
     const resetLine = lines.find(l => RESET_PATTERNS.test(normalizeText(l)));
+    console.log('[ClaudeTrack] design result:', { pct, resetLine, content: content.slice(0, 150) });
     return {
       percentage: pct,
       resetTime: resetLine ? parseResetTime(resetLine) : null,
