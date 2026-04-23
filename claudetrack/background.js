@@ -210,7 +210,7 @@ async function persistAndBadge(data) {
   }
 
   // Preserve design data from content.js when the API path has none
-  if (next.design?.percentage === null && current?.design?.percentage != null) {
+  if (next.design?.percentage === null && current?.design?.percentage > 0) {
     next.design = { ...current.design };
   }
 
