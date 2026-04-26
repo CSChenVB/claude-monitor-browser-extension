@@ -11,7 +11,10 @@
       "Read(//c/Users/marti/**)",
       "Bash(cmd /c \"gh repo create claude-usage-monitor --public --description \\\\\"Claude Usage Monitor Chrome Extension — Privacy Policy\\\\\" 2>&1\")",
       "Bash(cmd /c \"gh repo view msadofschi/claude-usage-monitor 2>&1\")",
-      "Bash(grep -rn \"[a-zA-Z0-9._%+-]\\\\+@[a-zA-Z0-9.-]\\\\+\\\\.[a-zA-Z]\\\\{2,\\\\}\\\\|[0-9a-f]\\\\{8\\\\}-[0-9a-f]\\\\{4\\\\}-[0-9a-f]\\\\{4\\\\}-[0-9a-f]\\\\{4\\\\}-[0-9a-f]\\\\{12\\\\}\" /c/Users/marti/msadofschi/claudetrack/claudetrack/)"
+      "Bash(grep -rn \"[a-zA-Z0-9._%+-]\\\\+@[a-zA-Z0-9.-]\\\\+\\\\.[a-zA-Z]\\\\{2,\\\\}\\\\|[0-9a-f]\\\\{8\\\\}-[0-9a-f]\\\\{4\\\\}-[0-9a-f]\\\\{4\\\\}-[0-9a-f]\\\\{4\\\\}-[0-9a-f]\\\\{12\\\\}\" /c/Users/marti/msadofschi/claudetrack/claudetrack/)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)"
     ]
   }
 }

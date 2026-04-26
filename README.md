@@ -2,25 +2,27 @@
 
 Claude Usage is a Manifest V3 browser extension for Claude.ai that shows your current usage directly from the toolbar popup.
 
-It displays two usage buckets:
+It displays three usage buckets:
 
 - **Current Session**: the current short-window Claude usage percentage.
 - **Weekly Limit**: the weekly Claude usage percentage.
+- **Claude Design**: the weekly Claude Design usage percentage (only shown when in use).
 
 ## How it works
 
-The extension now refreshes usage primarily through Claude.ai's internal authenticated API, which makes it much more reliable than reading the visible settings page.
+The extension refreshes usage through Claude.ai's internal authenticated API.
 
 - Automatic refresh runs every 5 minutes.
 - Manual refresh is available from the popup.
 - The popup shows the extension version so you can confirm which local build is loaded.
-- The usage page parser still exists as a fallback path, but API-based refresh is the primary source.
+- A content-script fallback fires if a usage tab is already open and the API path fails.
 
 ## Features
 
 - Toolbar badge showing the current session percentage.
 - Popup with current session and weekly usage cards.
 - Reset countdowns when Claude returns reset timestamps.
+- Claude Design usage card (hidden until Design is active).
 - Manual refresh button.
 - Quick link to `https://claude.ai/settings/usage`.
 - Local storage caching so the last known value remains visible between refreshes.
