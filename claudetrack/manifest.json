@@ -7,7 +7,7 @@
   "author": "Digital Advanced Solutions",
   "minimum_chrome_version": "116",
   "permissions": ["storage", "alarms"],
-  "host_permissions": ["https://claude.ai/settings/usage*"],
+  "host_permissions": ["https://claude.ai/*"],
   "homepage_url": "https://claude-monitor.netlify.app/",
   "background": {
     "service_worker": "background.js"
