@@ -238,6 +238,94 @@ body {
   text-overflow: ellipsis;
 }
 
+/* ── Extra-usage banner (paid credits) ───────────────────────────────────── */
+
+.extra-banner {
+  margin: 8px 14px 0;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(130,80,220,0.10) 0%, rgba(168,117,245,0.06) 100%);
+  border: 1px solid rgba(130,80,220,0.25);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--text-sec);
+}
+
+.extra-banner-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.extra-banner-label svg { color: var(--accent-lt); flex-shrink: 0; }
+
+.extra-banner-value {
+  color: var(--text-pri);
+  font-weight: 600;
+}
+
+/* ── Stale / auth-failed banner ──────────────────────────────────────────── */
+
+.stale-banner {
+  margin: 8px 14px 0;
+  padding: 9px 12px;
+  background: rgba(245, 158, 11, 0.10);
+  border: 1px solid rgba(245, 158, 11, 0.30);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--text-pri);
+}
+
+.stale-banner-icon {
+  color: var(--yellow);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.stale-banner-text {
+  flex: 1;
+  line-height: 1.4;
+  min-width: 0;
+}
+
+.stale-banner-text b {
+  display: block;
+  color: var(--text-pri);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.stale-banner-text span {
+  color: var(--text-sec);
+  font-size: 11px;
+}
+
+.stale-banner-cta {
+  color: var(--accent-lt);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.stale-banner-cta:hover { background: rgba(168, 117, 245, 0.10); }
+
+/* Dim cards when data is stale due to auth failure */
+.cards.dimmed .card { opacity: 0.5; }
+.cards.dimmed .card:hover { border-color: var(--border); }
+
 /* ── Pro teaser ──────────────────────────────────────────────────────────── */
 
 .pro-teaser {

@@ -1,7 +1,8 @@
 // ─── Claude Usage Monitor — Popup Script ─────────────────────────────────────
 
-const USAGE_URL = 'https://claude.ai/settings/usage';
-const PLAN      = 'free';
+const USAGE_URL   = 'https://claude.ai/settings/usage';
+const SIGN_IN_URL = 'https://claude.ai/login';
+const PLAN        = 'free';
 
 // ── DOM refs ──────────────────────────────────────────────────────────────
 
@@ -28,12 +29,28 @@ const weeklyBar   = $('weeklyBar');
 const weeklyReset = $('weeklyReset');
 const weeklyLabel = $('weeklyLabel');
 
+// Opus
+const opusCard  = $('opusCard');
+const opusPct   = $('opusPct');
+const opusBar   = $('opusBar');
+const opusReset = $('opusReset');
+const opusLabel = $('opusLabel');
+
 // Design
 const designCard  = $('designCard');
 const designPct   = $('designPct');
 const designBar   = $('designBar');
 const designReset = $('designReset');
 const designLabel = $('designLabel');
+
+// Banners
+const extraBanner   = $('extraBanner');
+const extraUsed     = $('extraUsed');
+const extraCap      = $('extraCap');
+const staleBanner   = $('staleBanner');
+const staleSubtitle = $('staleBannerSubtitle');
+const signInBtn     = $('signInBtn');
+const cardsEl       = $('cards');
 
 // ── Plan management ───────────────────────────────────────────────────────
 
@@ -97,6 +114,14 @@ function formatTimeUntil(epochMs) {
   return `Resets in ${m}m`;
 }
 
+function formatCredits(amount, currency) {
+  const symbol = currency === 'USD' ? '$' : (currency || '');
+  // Whole dollars when amount is integer, two decimals otherwise.
+  const rounded = Number.isInteger(amount) ? amount : Number(amount.toFixed(2));
+  const formatted = rounded.toLocaleString('en-US');
+  return `${symbol}${formatted}`;
+}
+
 function formatTimestamp(epochMs) {
   if (!epochMs) return 'Never updated';
   const now  = new Date();
@@ -121,8 +146,12 @@ function render(data) {
     return;
   }
 
-  const { session, weekly, design, lastUpdated: ts } = data;
-  const hasSomething = session?.percentage !== null || weekly?.percentage !== null || design?.percentage !== null;
+  const { session, weekly, opus, design, extra, lastUpdated: ts } = data;
+  const hasSomething =
+    session?.percentage !== null ||
+    weekly?.percentage  !== null ||
+    opus?.percentage    !== null ||
+    design?.percentage  !== null;
 
   if (!hasSomething) {
     mainEl.style.display   = 'none';
@@ -169,6 +198,24 @@ function render(data) {
     : (weekly?.label || 'Reset day unknown');
   weeklyLabel.textContent = '';
 
+  // ── Opus weekly ──────────────────────────────────────────────────────
+  const oPct = opus?.percentage ?? null;
+  if (oPct !== null) {
+    opusCard.style.display = 'block';
+    const p = Math.min(100, Math.max(0, Math.round(oPct)));
+    opusPct.textContent = `${p}%`;
+    opusBar.style.width = `${p}%`;
+    applyColor(opusPct, opusBar, oPct);
+    const oReset = formatTimeUntil(opus?.resetTime);
+    const oDate  = oReset ? formatResetDate(opus?.resetTime) : '';
+    opusReset.textContent = oReset
+      ? (oDate ? `${oReset} (${oDate})` : oReset)
+      : (opus?.label || 'Reset time unknown');
+    opusLabel.textContent = '';
+  } else {
+    opusCard.style.display = 'none';
+  }
+
   // ── Design ───────────────────────────────────────────────────────────
   const dPct = design?.percentage ?? null;
   if (dPct !== null) {
@@ -187,8 +234,33 @@ function render(data) {
     designCard.style.display = 'none';
   }
 
+  // ── Extra usage credits ──────────────────────────────────────────────
+  if (extra && extra.isEnabled && extra.monthlyLimit > 0) {
+    extraBanner.style.display = 'flex';
+    extraUsed.textContent = formatCredits(extra.usedCredits, extra.currency);
+    extraCap.textContent  = formatCredits(extra.monthlyLimit, extra.currency);
+  } else {
+    extraBanner.style.display = 'none';
+  }
+
   // ── Timestamp ────────────────────────────────────────────────────────
   lastUpdated.textContent = formatTimestamp(ts);
+}
+
+// ── Auth-failed banner ────────────────────────────────────────────────────
+
+function renderAuthState(authBackoff, lastUpdatedTs) {
+  const failing = Boolean(authBackoff && authBackoff.fails > 0);
+  if (!failing) {
+    staleBanner.style.display = 'none';
+    cardsEl?.classList.remove('dimmed');
+    return;
+  }
+  staleBanner.style.display = 'flex';
+  cardsEl?.classList.add('dimmed');
+  staleSubtitle.textContent = lastUpdatedTs
+    ? `Last update ${formatTimestamp(lastUpdatedTs).replace(/^Updated\s+/, '')}`
+    : 'No data captured yet';
 }
 
 // ── Load from storage ─────────────────────────────────────────────────────
@@ -199,10 +271,14 @@ function loadData() {
     appVersionEl.textContent = `v${manifestVersion}`;
   }
 
-  chrome.storage.local.get(['claudeUsage', 'refreshInterval'], ({ claudeUsage, refreshInterval }) => {
-    if (intervalSelect) intervalSelect.value = String(refreshInterval || 5);
-    render(claudeUsage || null);
-  });
+  chrome.storage.local.get(
+    ['claudeUsage', 'refreshInterval', 'authBackoff'],
+    ({ claudeUsage, refreshInterval, authBackoff }) => {
+      if (intervalSelect) intervalSelect.value = String(refreshInterval || 5);
+      render(claudeUsage || null);
+      renderAuthState(authBackoff, claudeUsage?.lastUpdated);
+    }
+  );
 }
 
 // ── Refresh flow ──────────────────────────────────────────────────────────
@@ -241,10 +317,20 @@ function openUsage() {
 openUsageBtn?.addEventListener('click', openUsage);
 openUsagePage?.addEventListener('click', openUsage);
 
+signInBtn?.addEventListener('click', () => {
+  chrome.tabs.create({ url: SIGN_IN_URL, active: true });
+  window.close();
+});
+
 // Listen for storage changes while popup is open
 chrome.storage.onChanged.addListener((changes) => {
   if (changes.claudeUsage) {
     render(changes.claudeUsage.newValue || null);
+  }
+  if (changes.claudeUsage || changes.authBackoff) {
+    chrome.storage.local.get(['claudeUsage', 'authBackoff'], ({ claudeUsage, authBackoff }) => {
+      renderAuthState(authBackoff, claudeUsage?.lastUpdated);
+    });
   }
 });
 

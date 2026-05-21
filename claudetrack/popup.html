@@ -44,7 +44,36 @@
   <!-- ── Main content (when data is available) ───────────────────────── -->
   <div id="main" style="display:none">
 
-    <div class="cards">
+    <!-- Auth-failed banner (hidden by default) -->
+    <div class="stale-banner" id="staleBanner" style="display:none">
+      <span class="stale-banner-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </span>
+      <span class="stale-banner-text">
+        <b>Signed out — data is stale</b>
+        <span id="staleBannerSubtitle">Last update unknown</span>
+      </span>
+      <button class="stale-banner-cta" id="signInBtn">Sign in →</button>
+    </div>
+
+    <!-- Extra-usage banner (hidden unless extra.isEnabled) -->
+    <div class="extra-banner" id="extraBanner" style="display:none">
+      <span class="extra-banner-label">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+        Extra credits
+      </span>
+      <span><span class="extra-banner-value" id="extraUsed">$0</span> / <span id="extraCap">$0</span></span>
+    </div>
+
+    <div class="cards" id="cards">
 
       <!-- Session card -->
       <div class="card" id="sessionCard">
@@ -90,6 +119,29 @@
           <span id="weeklyReset">—</span>
         </div>
         <div class="reset-label" id="weeklyLabel"></div>
+      </div>
+
+      <!-- Opus weekly card (hidden when not in use) -->
+      <div class="card" id="opusCard" style="display:none">
+        <div class="card-header">
+          <div class="card-title-row">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+            <span class="card-title">Opus Weekly</span>
+          </div>
+          <span class="card-pct" id="opusPct">—</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="opusBar" style="width:0%"></div>
+        </div>
+        <div class="reset-row">
+          <span id="opusReset">—</span>
+        </div>
+        <div class="reset-label" id="opusLabel"></div>
       </div>
 
       <!-- Claude Design card -->
