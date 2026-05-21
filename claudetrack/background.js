@@ -194,22 +194,43 @@ function mapApiUsageToStoredShape(usage) {
       resetTime: parseApiTime(usage?.seven_day?.resets_at),
       label: usage?.seven_day?.resets_at ? null : 'Weekly limit',
     },
+    opus: {
+      percentage: normalizePct(usage?.seven_day_opus?.utilization),
+      resetTime: parseApiTime(usage?.seven_day_opus?.resets_at),
+      label: usage?.seven_day_opus?.resets_at ? null : 'Not yet used',
+    },
     design: {
       percentage: normalizePct(usage?.seven_day_omelette?.utilization),
       resetTime: parseApiTime(usage?.seven_day_omelette?.resets_at),
       label: usage?.seven_day_omelette?.resets_at ? null : 'Not yet used',
     },
+    extra: mapExtraUsage(usage?.extra_usage),
     meta: {
       ready: normalizePct(usage?.five_hour?.utilization) !== null,
       confidence: 'high',
       sessionSource: 'api',
       weeklySource: 'api',
+      opusSource: 'api',
       designSource: 'api',
       foundSessionMarker: true,
       foundWeeklyMarker: true,
+      foundOpusMarker: true,
       foundDesignMarker: true,
       textPercentageCount: 0,
     },
+  };
+}
+
+function mapExtraUsage(extra) {
+  if (!extra || typeof extra !== 'object') return null;
+  const usedCredits = Number(extra.used_credits);
+  const monthlyLimit = Number(extra.monthly_limit);
+  if (!Number.isFinite(usedCredits) || !Number.isFinite(monthlyLimit)) return null;
+  return {
+    isEnabled: Boolean(extra.is_enabled),
+    usedCredits,
+    monthlyLimit,
+    currency: typeof extra.currency === 'string' ? extra.currency : 'USD',
   };
 }
 
@@ -250,24 +271,47 @@ function sanitizeUsageData(data) {
       resetTime: data.weekly?.resetTime ?? null,
       label: data.weekly?.label ?? null,
     },
+    opus: {
+      percentage: normalizePct(data.opus?.percentage),
+      resetTime: data.opus?.resetTime ?? null,
+      label: data.opus?.label ?? null,
+    },
     design: {
       percentage: normalizePct(data.design?.percentage),
       resetTime: data.design?.resetTime ?? null,
       label: data.design?.label ?? null,
     },
+    extra: sanitizeExtra(data.extra),
     meta: {
       ready: Boolean(data.meta?.ready),
       confidence: data.meta?.confidence || 'low',
       sessionSource: data.meta?.sessionSource || null,
       weeklySource: data.meta?.weeklySource || null,
+      opusSource: data.meta?.opusSource || null,
+      designSource: data.meta?.designSource || null,
       foundSessionMarker: Boolean(data.meta?.foundSessionMarker),
       foundWeeklyMarker: Boolean(data.meta?.foundWeeklyMarker),
+      foundOpusMarker: Boolean(data.meta?.foundOpusMarker),
+      foundDesignMarker: Boolean(data.meta?.foundDesignMarker),
       textPercentageCount: Number.isFinite(data.meta?.textPercentageCount) ? data.meta.textPercentageCount : 0,
     },
   };
 
   if (clone.session.percentage === null && clone.weekly.percentage === null) return null;
   return clone;
+}
+
+function sanitizeExtra(extra) {
+  if (!extra || typeof extra !== 'object') return null;
+  const usedCredits = Number(extra.usedCredits);
+  const monthlyLimit = Number(extra.monthlyLimit);
+  if (!Number.isFinite(usedCredits) || !Number.isFinite(monthlyLimit)) return null;
+  return {
+    isEnabled: Boolean(extra.isEnabled),
+    usedCredits,
+    monthlyLimit,
+    currency: typeof extra.currency === 'string' ? extra.currency : 'USD',
+  };
 }
 
 function normalizePct(value) {

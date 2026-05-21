@@ -38,7 +38,7 @@ https://claude-monitor.netlify.app/privacy
 
 Track your Claude.ai usage in real time. See session and weekly limits, reset times, and color-coded progress — in your toolbar.
 
-The only Claude usage tracker that monitors Claude Design alongside your 5-hour session and 7-day weekly limits, all in your browser toolbar.
+The only Claude usage tracker that monitors Claude Design and Opus weekly limits alongside your 5-hour session and 7-day weekly limits — plus paid extra credits — all in your browser toolbar.
 
 Stop opening claude.ai/settings/usage. A color-coded badge tells you at a glance whether you can keep working or need to pace yourself, with countdowns to every reset.
 
@@ -47,7 +47,10 @@ No account, no API key, no data leaves your browser. Reads your existing Claude 
 WHAT YOU SEE
 - Session usage (5-hour rolling window) with reset countdown
 - Weekly usage (all models combined) with reset day/time
-- Claude Design usage (most trackers ignore this)
+- Opus weekly usage with reset day/time (when in use)
+- Claude Design usage (when in use — most trackers ignore this)
+- Paid extra credits used vs. monthly cap (when enabled on your plan)
+- Inline banner when your claude.ai session expires — last-known data stays visible
 - Toolbar badge: green under 50%, yellow 50 to 80%, red above 80%
 - Configurable auto-refresh: 1, 2, 5, 10, or 60 minutes
 
