@@ -103,15 +103,12 @@ Minimum: 1 screenshot at **1280×800px** or **640×400px**
 
 ## How to zip for upload
 
-```
-cd claudetrack/
-zip -r ../claude-usage-monitor-v<version>.zip . --exclude "*.DS_Store"
+Run from the repo root:
+
+```powershell
+./Generate_zip_extensions_chrome.ps1
 ```
 
-PowerShell on Windows:
-```
-cd claudetrack
-Compress-Archive -Path * -DestinationPath ../claude-usage-monitor-v<version>.zip -Force
-```
+Produces `claude-usage-monitor-chrome-v<version>.zip` at the repo root. Reads the version from `claudetrack/manifest.json` by default, or pass `-Version 1.4.3` to override.
 
 The ZIP must contain the files at the root, not inside a `claudetrack/` folder.

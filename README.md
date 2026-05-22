@@ -79,7 +79,7 @@ Three PowerShell scripts in the repo root package the extension for the stores. 
 
 | Script | Output | Notes |
 | --- | --- | --- |
-| `Generate_zip_extensions_chrome.ps1` | `claude-usage-monitor-v<version>.zip` | Strips `manifest.firefox.json` before zipping. |
+| `Generate_zip_extensions_chrome.ps1` | `claude-usage-monitor-chrome-v<version>.zip` | Strips `manifest.firefox.json` before zipping. |
 | `Generate_zip_extensions_firefox.ps1` | `claude-usage-monitor-firefox-v<version>.zip` | Swaps `manifest.firefox.json` in as `manifest.json` before zipping. |
 | `Generate_zip_extensions_all_platforms.ps1` | Both ZIPs above | Calls the two scripts above in sequence. |
 

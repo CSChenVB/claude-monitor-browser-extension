@@ -10,7 +10,7 @@ if (-not $Version) {
 }
 
 $staging = Join-Path $env:TEMP "claudetrack-chrome-$Version"
-$zipPath = Join-Path (Get-Location) "claude-usage-monitor-v$Version.zip"
+$zipPath = Join-Path (Get-Location) "claude-usage-monitor-chrome-v$Version.zip"
 
 if (Test-Path $staging) { Remove-Item -Recurse -Force $staging }
 New-Item -ItemType Directory -Path $staging | Out-Null
