@@ -66,13 +66,12 @@ PRIVACY
 - All data stored locally on your device
 - No analytics, no telemetry, no third parties
 - Cannot read your chats, projects, files, or any other Claude.ai content
-- Permissions are scoped to the absolute minimum: only the usage page and two specific API endpoints (organization list and usage stats)
+- Permissions are scoped to the absolute minimum: two specific API endpoints (organization list and usage stats)
 - Specifically excluded: chat_conversations, projects, members, and every other endpoint
 
 PERMISSIONS USED AND WHY
 - Storage — persist usage data locally so the badge survives browser restarts
 - Alarms — schedule automatic refreshes at the configured interval
-- https://claude.ai/settings/usage — read the usage settings page (content script)
 - https://claude.ai/api/organizations — list your organizations to identify the active one
 - https://claude.ai/api/organizations/*/usage — read usage stats only
 
@@ -93,12 +92,12 @@ Full privacy policy: https://claude-monitor.netlify.app/privacy
 
 This add-on reads Claude.ai usage statistics from the user's existing logged-in session and displays them in a toolbar badge. It does not require its own account or any external service.
 
-BUILD PROCESS: None. The submitted ZIP contains the complete, unminified source code as it runs in the browser. No transpilation, bundling, minification, or preprocessing of any kind. The files in the ZIP (manifest.json, background.js, content.js, popup.js, popup.html, popup.css, icons/) are exactly what gets loaded by Firefox.
+BUILD PROCESS: None. The submitted ZIP contains the complete, unminified source code as it runs in the browser. No transpilation, bundling, minification, or preprocessing of any kind. The files in the ZIP (manifest.json, background.js, popup.js, popup.html, popup.css, icons/) are exactly what gets loaded by Firefox.
 
 TO TEST:
 1. Install the add-on and pin it to the toolbar.
 2. Log in to https://claude.ai with any Claude account (free or paid).
-3. Open https://claude.ai/settings/usage once to let the content script seed initial data, OR click the extension icon and press Refresh.
+3. Click the extension icon and press Refresh (the badge also populates automatically after install).
 4. The toolbar badge will display the session usage percentage (color-coded: green/yellow/red).
 5. Click the icon for the full popup showing session, weekly, and Claude Design usage.
 
@@ -107,7 +106,7 @@ NOTES:
 - Brand-new accounts with no usage history will correctly show 0% — send at least one message in Claude to see populated data.
 - Data is read via authenticated requests to claude.ai/api/organizations and claude.ai/api/organizations/*/usage (the same endpoints the official settings page uses).
 - All data is stored locally via browser.storage.local. No data is transmitted to any third-party server.
-- Host permissions are scoped to exactly three URLs (usage page + two API endpoints), explicitly excluding chat content, projects, and other user data.
+- Host permissions are scoped to exactly two API endpoints, explicitly excluding chat content, projects, and other user data.
 
 ---
 

@@ -1,6 +1,6 @@
 // ─── ClaudeTrack — Background Service Worker ───────────────────────────────
-// Polls claude.ai/settings/usage every 5 minutes, parses usage data via a
-// content script, persists it to chrome.storage.local, and updates the badge.
+// Polls Claude.ai's authenticated usage API every 5 minutes, persists the
+// result to chrome.storage.local, and updates the toolbar badge.
 
 const API_BASE   = 'https://claude.ai/api';
 const ALARM_NAME = 'claudetrack-poll';
@@ -51,11 +51,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         sendResponse({ ok: true });
       });
     });
-    return true;
-  }
-  if (msg.type === 'USAGE_DATA') {
-    // Forwarded from the content script via tab messaging
-    persistAndBadge(msg.data).then((stored) => sendResponse({ ok: true, stored }));
     return true;
   }
 });
@@ -214,18 +209,6 @@ function mapApiUsageToStoredShape(usage) {
       ready:
         normalizePct(usage?.five_hour?.utilization) !== null ||
         normalizePct(usage?.seven_day?.utilization) !== null,
-      confidence: 'high',
-      sessionSource: 'api',
-      weeklySource: 'api',
-      opusSource: 'api',
-      sonnetSource: 'api',
-      designSource: 'api',
-      foundSessionMarker: true,
-      foundWeeklyMarker: true,
-      foundOpusMarker: true,
-      foundSonnetMarker: true,
-      foundDesignMarker: true,
-      textPercentageCount: 0,
     },
   };
 }
@@ -255,11 +238,7 @@ function parseApiTime(value) {
 async function persistAndBadge(data) {
   const next = sanitizeUsageData(data);
   if (!next) return false;
-
-  const { claudeUsage: current } = await chrome.storage.local.get('claudeUsage');
-  if (!shouldPersist(next, current)) {
-    return false;
-  }
+  if (!shouldPersist(next)) return false;
 
   next.lastUpdated = Date.now();
   await chrome.storage.local.set({ claudeUsage: next });
@@ -299,18 +278,6 @@ function sanitizeUsageData(data) {
     extra: sanitizeExtra(data.extra),
     meta: {
       ready: Boolean(data.meta?.ready),
-      confidence: data.meta?.confidence || 'low',
-      sessionSource: data.meta?.sessionSource || null,
-      weeklySource: data.meta?.weeklySource || null,
-      opusSource: data.meta?.opusSource || null,
-      sonnetSource: data.meta?.sonnetSource || null,
-      designSource: data.meta?.designSource || null,
-      foundSessionMarker: Boolean(data.meta?.foundSessionMarker),
-      foundWeeklyMarker: Boolean(data.meta?.foundWeeklyMarker),
-      foundOpusMarker: Boolean(data.meta?.foundOpusMarker),
-      foundSonnetMarker: Boolean(data.meta?.foundSonnetMarker),
-      foundDesignMarker: Boolean(data.meta?.foundDesignMarker),
-      textPercentageCount: Number.isFinite(data.meta?.textPercentageCount) ? data.meta.textPercentageCount : 0,
     },
   };
 
@@ -342,31 +309,9 @@ function normalizePct(value) {
   return num;
 }
 
-function confidenceRank(level) {
-  if (level === 'high') return 3;
-  if (level === 'medium') return 2;
-  return 1;
-}
-
-function shouldPersist(next, current) {
-  if (!next?.meta?.ready) return false;
-  if (!current) return true;
-
-  const nextRank = confidenceRank(next.meta?.confidence);
-  const currentRank = confidenceRank(current.meta?.confidence);
-
-  if (nextRank > currentRank) return true;
-  if (current.session?.percentage === null) return true;
-
-  // High-confidence (API) data is authoritative — accept drops (session resets, plan changes).
-  if (next.meta?.confidence === 'high') return true;
-
-  // Lower confidence (DOM parse): need session data to validate the drop.
-  if (next.session?.percentage === null) return false;
-  const drop = current.session.percentage - next.session.percentage;
-  if (drop >= 20) return false;
-
-  return true;
+function shouldPersist(next) {
+  // API data is authoritative — persist whenever it parsed successfully.
+  return Boolean(next?.meta?.ready);
 }
 
 function updateBadge(data) {

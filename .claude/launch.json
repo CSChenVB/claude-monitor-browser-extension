@@ -1,4 +1,11 @@
 {
   "version": "0.0.1",
-  "configurations": []
+  "configurations": [
+    {
+      "name": "popup",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["screenshot_helper/_serve.js"],
+      "port": 4179
+    }
+  ]
 }

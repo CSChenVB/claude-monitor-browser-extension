@@ -4,6 +4,10 @@ const USAGE_URL   = 'https://claude.ai/settings/usage';
 const SIGN_IN_URL = 'https://claude.ai/login';
 const PLAN        = 'free';
 
+const SUBCARDS = ['sonnet', 'opus', 'design'];
+let cardPrefs  = { sonnet: true, opus: true, design: true };
+let lastData   = null;
+
 // ── DOM refs ──────────────────────────────────────────────────────────────
 
 const $  = id => document.getElementById(id);
@@ -49,6 +53,17 @@ const designPct   = $('designPct');
 const designBar   = $('designBar');
 const designReset = $('designReset');
 const designLabel = $('designLabel');
+
+// View menu (show/hide optional cards)
+const viewWrap       = $('viewWrap');
+const viewBtn        = $('viewBtn');
+const viewMenu       = $('viewMenu');
+const sonnetMenuItem = $('sonnetMenuItem');
+const opusMenuItem   = $('opusMenuItem');
+const designMenuItem = $('designMenuItem');
+const sonnetMenuPct  = $('sonnetMenuPct');
+const opusMenuPct    = $('opusMenuPct');
+const designMenuPct  = $('designMenuPct');
 
 // Banners
 const extraBanner   = $('extraBanner');
@@ -147,6 +162,8 @@ function formatTimestamp(epochMs) {
 // ── Render ────────────────────────────────────────────────────────────────
 
 function render(data) {
+  if (viewWrap) viewWrap.style.display = 'none';
+
   if (!data) {
     mainEl.style.display   = 'none';
     noDataEl.style.display = 'block';
@@ -154,6 +171,7 @@ function render(data) {
   }
 
   const { session, weekly, sonnet, opus, design, extra, lastUpdated: ts } = data;
+  lastData = data;
   const hasSomething =
     session?.percentage !== null ||
     weekly?.percentage  !== null ||
@@ -209,7 +227,7 @@ function render(data) {
   // ── Sonnet weekly ────────────────────────────────────────────────────
   const snPct = sonnet?.percentage ?? null;
   if (snPct !== null) {
-    sonnetCard.style.display = 'block';
+    sonnetCard.style.display = cardPrefs.sonnet ? 'block' : 'none';
     const p = Math.min(100, Math.max(0, Math.round(snPct)));
     sonnetPct.textContent = `${p}%`;
     sonnetBar.style.width = `${p}%`;
@@ -227,7 +245,7 @@ function render(data) {
   // ── Opus weekly ──────────────────────────────────────────────────────
   const oPct = opus?.percentage ?? null;
   if (oPct !== null) {
-    opusCard.style.display = 'block';
+    opusCard.style.display = cardPrefs.opus ? 'block' : 'none';
     const p = Math.min(100, Math.max(0, Math.round(oPct)));
     opusPct.textContent = `${p}%`;
     opusBar.style.width = `${p}%`;
@@ -245,7 +263,7 @@ function render(data) {
   // ── Design ───────────────────────────────────────────────────────────
   const dPct = design?.percentage ?? null;
   if (dPct !== null) {
-    designCard.style.display = 'block';
+    designCard.style.display = cardPrefs.design ? 'block' : 'none';
     const p = Math.min(100, Math.max(0, Math.round(dPct)));
     designPct.textContent = `${p}%`;
     designBar.style.width = `${p}%`;
@@ -271,6 +289,55 @@ function render(data) {
 
   // ── Timestamp ────────────────────────────────────────────────────────
   lastUpdated.textContent = formatTimestamp(ts);
+
+  // ── Optional-cards menu ───────────────────────────────────────────────
+  renderViewMenu(data);
+}
+
+// ── Optional-cards menu ─────────────────────────────────────────────────────
+
+function renderViewMenu(data) {
+  const avail = {
+    sonnet: (data?.sonnet?.percentage ?? null) !== null,
+    opus:   (data?.opus?.percentage   ?? null) !== null,
+    design: (data?.design?.percentage ?? null) !== null,
+  };
+  const anyAvail = avail.sonnet || avail.opus || avail.design;
+
+  if (viewWrap) viewWrap.style.display = anyAvail ? 'flex' : 'none';
+  if (!anyAvail) closeViewMenu();
+
+  updateMenuItem('sonnet', avail.sonnet, data?.sonnet?.percentage, sonnetMenuItem, sonnetMenuPct);
+  updateMenuItem('opus',   avail.opus,   data?.opus?.percentage,   opusMenuItem,   opusMenuPct);
+  updateMenuItem('design', avail.design, data?.design?.percentage, designMenuItem, designMenuPct);
+}
+
+function updateMenuItem(key, available, pct, itemEl, pctEl) {
+  if (!itemEl) return;
+  itemEl.style.display = available ? 'flex' : 'none';
+  itemEl.classList.toggle('on', Boolean(cardPrefs[key]));
+  if (pctEl) pctEl.textContent = (pct ?? null) !== null ? `${Math.round(pct)}%` : '—';
+}
+
+function toggleCard(key) {
+  if (!SUBCARDS.includes(key)) return;
+  cardPrefs[key] = !cardPrefs[key];
+  chrome.storage.local.set({ cardPrefs });
+  if (lastData) render(lastData);
+}
+
+function openViewMenu() {
+  if (!viewMenu) return;
+  viewMenu.hidden = false;
+  viewBtn?.classList.add('active');
+  viewBtn?.setAttribute('aria-expanded', 'true');
+}
+
+function closeViewMenu() {
+  if (!viewMenu) return;
+  viewMenu.hidden = true;
+  viewBtn?.classList.remove('active');
+  viewBtn?.setAttribute('aria-expanded', 'false');
 }
 
 // ── Auth-failed banner ────────────────────────────────────────────────────
@@ -298,8 +365,11 @@ function loadData() {
   }
 
   chrome.storage.local.get(
-    ['claudeUsage', 'refreshInterval', 'authBackoff'],
-    ({ claudeUsage, refreshInterval, authBackoff }) => {
+    ['claudeUsage', 'refreshInterval', 'authBackoff', 'cardPrefs'],
+    ({ claudeUsage, refreshInterval, authBackoff, cardPrefs: storedPrefs }) => {
+      if (storedPrefs && typeof storedPrefs === 'object') {
+        cardPrefs = { sonnet: true, opus: true, design: true, ...storedPrefs };
+      }
       if (intervalSelect) intervalSelect.value = String(refreshInterval || 5);
       render(claudeUsage || null);
       renderAuthState(authBackoff, claudeUsage?.lastUpdated);
@@ -333,6 +403,25 @@ refreshBtn.addEventListener('click', triggerRefresh);
 intervalSelect?.addEventListener('change', () => {
   const minutes = parseInt(intervalSelect.value, 10);
   chrome.runtime.sendMessage({ type: 'SET_INTERVAL', minutes });
+});
+
+viewBtn?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (viewMenu?.hidden) openViewMenu();
+  else closeViewMenu();
+});
+
+viewMenu?.addEventListener('click', (e) => {
+  const item = e.target.closest('.view-menu-item');
+  if (!item) return;
+  e.stopPropagation();
+  toggleCard(item.dataset.card);
+});
+
+document.addEventListener('click', (e) => {
+  if (viewMenu && !viewMenu.hidden && viewWrap && !viewWrap.contains(e.target)) {
+    closeViewMenu();
+  }
 });
 
 function openUsage() {
