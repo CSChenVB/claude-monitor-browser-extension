@@ -51,13 +51,12 @@ PRIVACY
 - All data stored locally on your device
 - No analytics, no telemetry, no third parties
 - Cannot read your chats, projects, files, or any other Claude.ai content
-- Permissions are scoped to the absolute minimum: only the usage page and two specific API endpoints (organization list and usage stats)
+- Permissions are scoped to the absolute minimum: two specific API endpoints (organization list and usage stats)
 - Specifically excluded: chat_conversations, projects, members, and every other endpoint
 
 PERMISSIONS USED AND WHY
 - *Storage* — persist usage data locally so the badge survives browser restarts
 - *Alarms* — schedule automatic refreshes at the configured interval
-- *https://claude.ai/settings/usage* — read the usage settings page (content script)
 - *https://claude.ai/api/organizations* — list your organizations to identify the active one
 - *https://claude.ai/api/organizations/\*/usage* — read usage stats only
 
@@ -109,6 +108,6 @@ Run from the repo root:
 ./Generate_zip_extensions_chrome.ps1
 ```
 
-Produces `claude-usage-monitor-chrome-v<version>.zip` at the repo root. Reads the version from `claudetrack/manifest.json` by default, or pass `-Version 1.4.4` to override.
+Produces `claude-usage-monitor-chrome-v<version>.zip` at the repo root. Reads the version from `claudetrack/manifest.json` by default, or pass `-Version 1.4.5` to override.
 
 The ZIP must contain the files at the root, not inside a `claudetrack/` folder.
