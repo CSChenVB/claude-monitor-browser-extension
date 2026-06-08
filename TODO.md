@@ -64,11 +64,12 @@ sub-caps).
 
 ## Release status
 
-- v1.4.8 (routine-runs card + **View** menu) is implemented and committed, but
+- v1.4.9 (routine-runs card + **View** menu, plus the View-menu idle-dim fix —
+  rows with no usage no longer render bold) is implemented and committed, but
   **not released yet**. Hold the ZIP build + store submission until the version
-  currently in review clears on **both Chrome and Firefox**, then ship v1.4.8.
+  currently in review clears on **both Chrome and Firefox**, then ship v1.4.9.
 - A full visual restyle of the extension **and** the landing is planned
-  separately (see "Polish UI" below); the v1.4.8 screenshots may be re-shot as
+  separately (see "Polish UI" below); the v1.4.9 screenshots may be re-shot as
   part of that, so don't over-invest in screenshot polish before the restyle.
 
 ## Landing page — pending (separate repo)
