@@ -11,6 +11,9 @@ let cardPrefs  = {};
 let planSubcaps = {};   // which sub-caps the plan offers: { opus, sonnet, design }
 let lastData   = null;
 
+// Optional cards selectable from the View menu (weekly sub-caps + daily routine).
+const OPTIONAL_CARDS = [...SUBCARDS, 'routine'];
+
 // ── DOM refs ──────────────────────────────────────────────────────────────
 
 const $  = id => document.getElementById(id);
@@ -57,6 +60,14 @@ const designPct   = $('designPct');
 const designBar   = $('designBar');
 const designReset = $('designReset');
 const designLabel = $('designLabel');
+
+// Routine (daily runs)
+const routineCard  = $('routineCard');
+const routinePct   = $('routinePct');
+const routineBar   = $('routineBar');
+const routineReset = $('routineReset');
+const routineMenuItem  = $('routineMenuItem');
+const routineMenuCount = $('routineMenuCount');
 
 // View menu (show/hide optional cards)
 const viewWrap       = $('viewWrap');
@@ -175,7 +186,7 @@ function render(data) {
     return;
   }
 
-  const { session, weekly, sonnet, opus, design, extra, lastUpdated: ts } = data;
+  const { session, weekly, sonnet, opus, design, extra, routine, lastUpdated: ts } = data;
   lastData = data;
   const hasSomething =
     session?.percentage !== null ||
@@ -234,6 +245,9 @@ function render(data) {
   renderSubCard('opus',   opus,   opusCard,   opusPct,   opusBar,   opusReset, weekly?.resetTime);
   renderSubCard('design', design, designCard, designPct, designBar, designReset, weekly?.resetTime);
 
+  // ── Daily routine runs (count-based; shown whenever the API returns it) ─
+  renderRoutineCard(routine);
+
   // ── Extra usage credits ──────────────────────────────────────────────
   if (extra && extra.isEnabled && extra.monthlyLimit > 0) {
     extraBanner.style.display = 'flex';
@@ -288,6 +302,35 @@ function renderSubCard(key, bucket, cardEl, pctEl, barEl, resetEl, weeklyResetTi
     : (bucket?.label || 'Reset day unknown');
 }
 
+// ── Routine-runs card ───────────────────────────────────────────────────────
+
+// The plan exposes a routine budget when it returns a positive limit.
+function routineOffered(routine) {
+  const limit = Number(routine?.limit);
+  return Number.isFinite(limit) && limit > 0;
+}
+
+// Count-based (`used / limit`), not a percentage. The API returns no reset
+// timestamp, so the reset is labelled generically. Offered only when the plan
+// exposes a routine budget; like the sub-caps it's selectable from the View
+// menu (tri-state, default shown — opt-out).
+function renderRoutineCard(routine) {
+  const offered = routineOffered(routine);
+  if (!offered || !cardVisible('routine', offered)) {
+    routineCard.style.display = 'none';
+    return;
+  }
+  routineCard.style.display = 'block';
+
+  const used  = Math.max(0, routine.used ?? 0);
+  const limit = routine.limit;
+  const pct   = Math.min(100, Math.max(0, (used / limit) * 100));
+  routinePct.textContent = `${used} / ${limit}`;
+  routineBar.style.width = `${pct}%`;
+  applyColor(routinePct, routineBar, pct);
+  routineReset.textContent = 'Resets daily';
+}
+
 // ── Optional-cards menu ─────────────────────────────────────────────────────
 
 function renderViewMenu(data) {
@@ -297,17 +340,20 @@ function renderViewMenu(data) {
     sonnet: subcapOffered('sonnet', (data?.sonnet?.percentage ?? null) !== null),
     design: subcapOffered('design', (data?.design?.percentage ?? null) !== null),
   };
-  const anyOffered = offered.opus || offered.sonnet || offered.design;
+  const routineOff = routineOffered(data?.routine);
+  const anyOffered = offered.opus || offered.sonnet || offered.design || routineOff;
   if (viewWrap) viewWrap.style.display = anyOffered ? 'flex' : 'none';
   if (!anyOffered) closeViewMenu();
 
   updateMenuItem('opus',   offered.opus,   data?.opus?.percentage,   opusMenuItem,   opusMenuPct);
   updateMenuItem('sonnet', offered.sonnet, data?.sonnet?.percentage, sonnetMenuItem, sonnetMenuPct);
   updateMenuItem('design', offered.design, data?.design?.percentage, designMenuItem, designMenuPct);
+  updateRoutineMenuItem(routineOff, data?.routine);
 
   if (viewAllBtn) {
-    const keys = SUBCARDS.filter(k => offered[k]);
-    const allShown = keys.length > 0 && keys.every(k => cardVisible(k, (data?.[k]?.percentage ?? null) !== null));
+    const keys = OPTIONAL_CARDS.filter(k => k === 'routine' ? routineOff : offered[k]);
+    const allShown = keys.length > 0 && keys.every(k =>
+      cardVisible(k, k === 'routine' ? true : (data?.[k]?.percentage ?? null) !== null));
     viewAllBtn.textContent = allShown ? 'Deselect all' : 'Select all';
   }
 }
@@ -322,10 +368,25 @@ function updateMenuItem(key, offered, pct, itemEl, pctEl) {
   if (pctEl) pctEl.textContent = hasData ? `${Math.round(pct)}%` : '—';
 }
 
+// Routine has no percentage; when offered it always carries a count, so it has
+// no dimmed "no usage" state — just the checkbox and the used / limit value.
+function updateRoutineMenuItem(offered, routine) {
+  if (!routineMenuItem) return;
+  routineMenuItem.style.display = offered ? 'flex' : 'none';
+  if (!offered) return;
+  routineMenuItem.classList.toggle('on', cardVisible('routine', true));
+  if (routineMenuCount) {
+    const used  = Math.max(0, Number(routine?.used) || 0);
+    const limit = Number(routine?.limit) || 0;
+    routineMenuCount.textContent = `${used} / ${limit}`;
+  }
+}
+
 function toggleCard(key) {
-  if (!SUBCARDS.includes(key)) return;
-  const bucket = lastData ? lastData[key] : null;
-  const hasData = (bucket?.percentage ?? null) !== null;
+  if (!OPTIONAL_CARDS.includes(key)) return;
+  const hasData = key === 'routine'
+    ? routineOffered(lastData?.routine)
+    : (lastData?.[key]?.percentage ?? null) !== null;
   // Flip current effective visibility into an explicit, persisted preference.
   cardPrefs[key] = !cardVisible(key, hasData);
   chrome.storage.local.set({ cardPrefs });
@@ -333,11 +394,13 @@ function toggleCard(key) {
 }
 
 function toggleAllCards() {
-  const keys = SUBCARDS.filter(k => {
+  const keys = OPTIONAL_CARDS.filter(k => {
+    if (k === 'routine') return routineOffered(lastData?.routine);
     const pct = lastData ? (lastData[k]?.percentage ?? null) : null;
     return subcapOffered(k, pct !== null);
   });
   const allShown = keys.length > 0 && keys.every(k => {
+    if (k === 'routine') return cardVisible('routine', true);
     const pct = lastData ? (lastData[k]?.percentage ?? null) : null;
     return cardVisible(k, pct !== null);
   });

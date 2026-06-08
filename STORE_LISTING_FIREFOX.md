@@ -50,8 +50,9 @@ WHAT YOU SEE
 - Opus weekly usage (per-model weekly sub-limit, on paid plans)
 - Sonnet weekly usage (per-model weekly sub-limit, on paid plans)
 - Claude Design usage (most trackers ignore this)
-- Show or hide each per-model card from the Models menu (with Select all / Deselect all)
+- Show or hide each optional card from the View menu (with Select all / Deselect all)
 - Your Claude plan shown as a badge in the header (Max, Pro, Team, etc.)
+- Daily included routine runs as a used / limit count (on plans that include Claude Code routines)
 - Paid extra credits used vs. monthly cap (when enabled on your plan)
 - Inline banner when your claude.ai session expires — last-known data stays visible
 - Toolbar badge: green under 50%, yellow 50 to 80%, red above 80%
@@ -68,7 +69,7 @@ PRIVACY
 - All data stored locally on your device
 - No analytics, no telemetry, no third parties
 - Cannot read your chats, projects, files, or any other Claude.ai content
-- Permissions are scoped to the absolute minimum: two specific API endpoints (organization list and usage stats)
+- Permissions are scoped to the absolute minimum: three specific API endpoints (organization list, usage stats, and routine-run budget)
 - Specifically excluded: chat_conversations, projects, members, and every other endpoint
 
 PERMISSIONS USED AND WHY
@@ -76,6 +77,7 @@ PERMISSIONS USED AND WHY
 - Alarms — schedule automatic refreshes at the configured interval
 - https://claude.ai/api/organizations — list your organizations to identify the active one
 - https://claude.ai/api/organizations/*/usage — read usage stats only
+- https://claude.ai/v1/code/routines/run-budget — read your daily routine-run count only
 
 HOW IT WORKS
 1. Install the extension and pin it to your toolbar
@@ -106,9 +108,9 @@ TO TEST:
 NOTES:
 - No test credentials needed. Any Claude.ai account works.
 - Brand-new accounts with no usage history will correctly show 0% — send at least one message in Claude to see populated data.
-- Data is read via authenticated requests to claude.ai/api/organizations and claude.ai/api/organizations/*/usage (the same endpoints the official settings page uses).
+- Data is read via authenticated requests to claude.ai/api/organizations, claude.ai/api/organizations/*/usage, and claude.ai/v1/code/routines/run-budget (the same endpoints the official settings/usage page uses).
 - All data is stored locally via browser.storage.local. No data is transmitted to any third-party server.
-- Host permissions are scoped to exactly two API endpoints, explicitly excluding chat content, projects, and other user data.
+- Host permissions are scoped to exactly three API endpoints, explicitly excluding chat content, projects, and other user data.
 
 ---
 

@@ -352,6 +352,12 @@ body {
 .card-pct.yellow { color: var(--yellow); }
 .card-pct.red    { color: var(--red); }
 
+/* Count-based value (e.g. routine runs "0 / 15") reads better a touch smaller */
+.card-pct.count {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
 .card-subtitle {
   color: var(--text-dim);
   font-size: 10.5px;
