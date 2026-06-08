@@ -364,22 +364,23 @@ function updateMenuItem(key, offered, pct, itemEl, pctEl) {
   if (!offered) return;
   const hasData = (pct ?? null) !== null;
   itemEl.classList.toggle('on', cardVisible(key, hasData));
-  itemEl.classList.toggle('no-usage', !hasData);
+  // Dim when nothing was used this week (no data, or a 0% reading) so an idle
+  // sub-cap doesn't read as bold next to active ones.
+  itemEl.classList.toggle('no-usage', !hasData || Math.round(pct) === 0);
   if (pctEl) pctEl.textContent = hasData ? `${Math.round(pct)}%` : '—';
 }
 
-// Routine has no percentage; when offered it always carries a count, so it has
-// no dimmed "no usage" state — just the checkbox and the used / limit value.
+// Routine has no percentage, just a used / limit count. Like the sub-caps it
+// dims to a "no usage" state when nothing has run yet (used 0).
 function updateRoutineMenuItem(offered, routine) {
   if (!routineMenuItem) return;
   routineMenuItem.style.display = offered ? 'flex' : 'none';
   if (!offered) return;
   routineMenuItem.classList.toggle('on', cardVisible('routine', true));
-  if (routineMenuCount) {
-    const used  = Math.max(0, Number(routine?.used) || 0);
-    const limit = Number(routine?.limit) || 0;
-    routineMenuCount.textContent = `${used} / ${limit}`;
-  }
+  const used  = Math.max(0, Number(routine?.used) || 0);
+  const limit = Number(routine?.limit) || 0;
+  routineMenuItem.classList.toggle('no-usage', used === 0);
+  if (routineMenuCount) routineMenuCount.textContent = `${used} / ${limit}`;
 }
 
 function toggleCard(key) {

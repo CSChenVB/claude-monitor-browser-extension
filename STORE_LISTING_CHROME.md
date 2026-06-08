@@ -113,6 +113,6 @@ Run from the repo root:
 ./Generate_zip_extensions_chrome.ps1
 ```
 
-Produces `claude-usage-monitor-chrome-v<version>.zip` at the repo root. Reads the version from `claudetrack/manifest.json` by default, or pass `-Version 1.4.8` to override.
+Produces `claude-usage-monitor-chrome-v<version>.zip` at the repo root. Reads the version from `claudetrack/manifest.json` by default, or pass `-Version 1.4.9` to override.
 
 The ZIP must contain the files at the root, not inside a `claudetrack/` folder.
