@@ -42,24 +42,42 @@ Response (200):
 - `anthropic-beta` is a **dated** value and will likely change as the feature
   graduates — fetch must fail soft (hide the card on 4xx).
 
-Work needed:
+Work needed — ✅ done (shipped at v1.4.8):
 
-- [x] **Verify the API.** Done — endpoint, headers and shape confirmed above.
-- [ ] `claudetrack/background.js` — add a separate `fetchRoutineBudget()` (own
-  headers, after `getClaudeOrgId`); store `{ used, limit }` on the usage object.
-  Fail soft on 4xx (omit the bucket) so non-routine plans just don't show it.
-- [ ] `claudetrack/popup.html` + `popup.css` — add the routine card markup/style.
-- [ ] `claudetrack/popup.js` — render it. Count format (`X / Y`) with a derived
-  bar; decide if it joins the optional-cards menu (`SUBCARDS`) or is always shown.
-- [ ] `manifest.json` + `manifest.firefox.json` — add host permission
+- [x] **Verify the API.** Endpoint, headers and shape confirmed above.
+- [x] `claudetrack/background.js` — separate `fetchRoutineBudget()` (own headers,
+  after the org id); stores `{ used, limit }` on the usage object. Fails soft on
+  4xx so non-routine plans just don't show it.
+- [x] `claudetrack/popup.html` + `popup.css` — routine card markup/style.
+- [x] `claudetrack/popup.js` — renders the count (`X / Y`) with a derived bar. It
+  **joins the optional-cards menu, renamed Models → View** (now holds the
+  per-model weekly caps + the daily routine card). Tri-state like the sub-caps:
+  default shown, user can opt out; auto-hidden when the plan has no routine budget.
+- [x] `manifest.json` + `manifest.firefox.json` — host permission
   `https://claude.ai/v1/code/routines/run-budget`.
-- [ ] Bump version (all manifests + doc references) and update README / store
-  listings.
+- [x] Bump version (manifests + docs) to 1.4.8 and update README / store listings.
 
 Open question (resolved): the bucket is gated by the `ccr-triggers` beta + the
 org's `unified_billing_enabled`. On orgs without it the endpoint will likely 4xx,
 so the card should auto-hide on fetch failure (same pattern as the weekly
 sub-caps).
+
+## Release status
+
+- v1.4.8 (routine-runs card + **View** menu) is implemented and committed, but
+  **not released yet**. Hold the ZIP build + store submission until the version
+  currently in review clears on **both Chrome and Firefox**, then ship v1.4.8.
+- A full visual restyle of the extension **and** the landing is planned
+  separately (see "Polish UI" below); the v1.4.8 screenshots may be re-shot as
+  part of that, so don't over-invest in screenshot polish before the restyle.
+
+## Landing page — pending (separate repo)
+
+Repo: <https://github.com/msadofschi/claude-usage-monitor-landing> (Cloudflare).
+
+- [ ] Propagate the **Models → View** menu rename.
+- [ ] Add the **Daily routine runs** card to the feature copy + screenshots.
+- [ ] Restyle alongside the extension (see "Polish UI with the Impeccable design skill" below).
 
 ## Update landing page for v1.4.6 + custom domain — ✅ done 2026-06-08 (shipped at v1.4.7)
 

@@ -84,6 +84,7 @@
 .card-pct.green { color: var(--green); }
 .card-pct.yellow { color: var(--yellow); }
 .card-pct.red { color: var(--red); }
+.card-pct.count { font-size: 16px; font-variant-numeric: tabular-nums; }
 .card-subtitle { color: var(--text-dim); font-size: 10.5px; margin-top: -4px; margin-bottom: 6px; letter-spacing: 0.01em; }
 .progress-track { height: 5px; background: var(--bg-3); border-radius: 99px; overflow: hidden; margin-bottom: 8px; }
 .progress-fill { height: 100%; border-radius: 99px; background: var(--green); }
@@ -102,7 +103,7 @@
   background: none; border: none; padding: 0;
 }
 
-/* ── v1.4.x additions: plan badge + Models (show/hide) menu ──────────── */
+/* ── v1.4.x additions: plan badge + View (show/hide) menu ──────────── */
 .meta-row { display: flex; align-items: center; gap: 6px; }
 .plan-badge {
   font-size: 9px; font-weight: 700; color: var(--accent-lt);

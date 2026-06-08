@@ -11,7 +11,7 @@ const base = path.join(__dirname, '..', 'claudetrack');
 const stub = `<script>
 window.chrome = {
   runtime: {
-    getManifest: () => ({ version: '1.4.6' }),
+    getManifest: () => ({ version: '1.4.8' }),
     sendMessage: (m, cb) => { if (cb) cb({ ok: true }); },
     onMessage: { addListener() {} },
   },
@@ -24,7 +24,7 @@ window.chrome = {
           sonnet:  { percentage: 0,  resetTime: Date.now() + 2.4e8, label: null },
           opus:    null,
           design:  null,
-          extra: null, lastUpdated: Date.now(), meta: { ready: true },
+          extra: null, routine: { used: 3, limit: 15 }, lastUpdated: Date.now(), meta: { ready: true },
         },
         refreshInterval: 5,
         authBackoff: null,

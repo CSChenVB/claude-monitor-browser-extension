@@ -1,7 +1,7 @@
 # Claude Usage Monitor
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.4.7-blue.svg)](claudetrack/manifest.json)
+[![Version](https://img.shields.io/badge/version-1.4.8-blue.svg)](claudetrack/manifest.json)
 [![Chrome Web Store](https://img.shields.io/badge/Chrome-Web%20Store-brightgreen.svg)](https://chromewebstore.google.com/detail/claude-usage-monitor-sess/bfhdcfiigpaaopklllpobkheakpigbfo)
 [![Firefox Add-ons](https://img.shields.io/badge/Firefox-Add--ons-orange.svg)](https://addons.mozilla.org/firefox/addon/claude-usage-meter/)
 
@@ -11,7 +11,8 @@ It displays your usage buckets:
 
 - **Current Session**: the current 5-hour-window Claude usage percentage.
 - **Weekly limit**: the weekly usage percentage across all models.
-- **Per-model weekly sub-limits**: Opus, Sonnet and Claude Design weekly usage (on paid plans) — show or hide each from the **Models** menu in the popup.
+- **Per-model weekly sub-limits**: Opus, Sonnet and Claude Design weekly usage (on paid plans) — show or hide each from the **View** menu in the popup.
+- **Daily routine runs**: included Claude Code routine runs as a `used / limit` count (on plans that include them).
 - **Your plan**: a badge in the popup header shows your Claude subscription (e.g. *Max 5x*).
 
 ## How it works
@@ -28,7 +29,8 @@ The extension refreshes usage through Claude.ai's internal authenticated API.
 - Toolbar badge showing the current session percentage.
 - Popup with current session and weekly usage cards.
 - Per-model weekly sub-limit cards — Opus, Sonnet and Claude Design — offered on paid plans.
-- **Models** menu to show/hide the optional per-model cards, with a Select all / Deselect all toggle; your choice is remembered.
+- **View** menu to show/hide optional cards — per-model weekly limits and daily routine runs — with a Select all / Deselect all toggle; your choice is remembered.
+- Daily routine-runs card (`used / limit`), shown only on plans that include routine runs.
 - Subscription badge in the header (Max, Pro, Team, etc.).
 - Reset countdowns when Claude returns reset timestamps.
 - Manual refresh button.
@@ -96,7 +98,7 @@ Examples (run from the repo root):
 ./Generate_zip_extensions_chrome.ps1
 
 # Firefox only, with an explicit version override
-./Generate_zip_extensions_firefox.ps1 -Version 1.4.7
+./Generate_zip_extensions_firefox.ps1 -Version 1.4.8
 ```
 
 Each ZIP lands in the repo root and overwrites any existing file with the same name.
@@ -121,7 +123,7 @@ Each ZIP lands in the repo root and overwrites any existing file with the same n
 - All data is stored locally on your device via `chrome.storage.local`.
 - No analytics, no telemetry, no third parties.
 - The extension cannot read your chats, projects, files, or any other Claude.ai content.
-- Host permissions are scoped to two specific API endpoints. See the [Chrome](STORE_LISTING_CHROME.md) and [Firefox](STORE_LISTING_FIREFOX.md) listings for the full permission breakdown.
+- Host permissions are scoped to three specific Claude.ai API endpoints. See the [Chrome](STORE_LISTING_CHROME.md) and [Firefox](STORE_LISTING_FIREFOX.md) listings for the full permission breakdown.
 - Full privacy policy: <https://www.claude-monitor.com/privacy>
 
 ## Contributing

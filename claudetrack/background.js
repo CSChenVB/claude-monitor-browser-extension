@@ -9,6 +9,13 @@ const POLL_MIN   = 5;   // minutes between automatic refreshes
 const ORG_ID_TTL_MS    = 24 * 60 * 60 * 1000; // re-validate cached orgId once a day
 const AUTH_BACKOFF_MAX = 6;                    // cap consecutive auth-failure skips
 
+// Daily routine-run budget lives behind the Claude Code gateway (/v1/code/...),
+// NOT in /usage. The route 404s without the ccr-triggers beta + anthropic-version
+// headers. The beta tag is dated and will change as the feature graduates.
+const ROUTINE_BUDGET_URL = 'https://claude.ai/v1/code/routines/run-budget';
+const ROUTINE_BETA       = 'ccr-triggers-2026-01-30';
+const ANTHROPIC_VERSION  = '2023-06-01';
+
 // ── Lifecycle ─────────────────────────────────────────────────────────────
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -104,6 +111,7 @@ async function refreshUsageFromApi() {
       return { refreshed: false, reason: 'org-not-found' };
     }
 
+    let activeOrgId = orgId;
     let usage;
     try {
       usage = await fetchClaudeJson(`${API_BASE}/organizations/${orgId}/usage`);
@@ -112,6 +120,7 @@ async function refreshUsageFromApi() {
         await chrome.storage.local.remove(['claudeOrgId', 'claudeOrgIdAt']);
         const retriedOrgId = await getClaudeOrgId();
         if (!retriedOrgId) throw error;
+        activeOrgId = retriedOrgId;
         usage = await fetchClaudeJson(`${API_BASE}/organizations/${retriedOrgId}/usage`);
       } else {
         throw error;
@@ -119,6 +128,9 @@ async function refreshUsageFromApi() {
     }
 
     const data = mapApiUsageToStoredShape(usage);
+    // Routine budget is a separate, optional fetch — never let it break the
+    // refresh. Null when unavailable (other plan, auth, beta changed) → card hides.
+    data.routine = await fetchRoutineBudget(activeOrgId);
     const stored = await persistAndBadge(data);
     return {
       refreshed: stored,
@@ -259,6 +271,35 @@ function mapExtraUsage(extra) {
   };
 }
 
+async function fetchRoutineBudget(orgId) {
+  try {
+    const response = await fetch(ROUTINE_BUDGET_URL, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json, text/plain, */*',
+        'anthropic-beta': ROUTINE_BETA,
+        'anthropic-version': ANTHROPIC_VERSION,
+        'x-organization-uuid': orgId,
+      },
+    });
+    if (!response.ok) return null; // fail soft: 404 (no beta/plan), 400, 401 → hide card
+    return mapRoutineBudget(await response.json());
+  } catch {
+    return null;
+  }
+}
+
+// Response shape: { used: "0", limit: "15", unified_billing_enabled: true }.
+// used/limit are numeric strings; there is no reset timestamp (daily, implicit).
+function mapRoutineBudget(data) {
+  if (!data || typeof data !== 'object') return null;
+  const used  = Number(data.used);
+  const limit = Number(data.limit);
+  if (!Number.isFinite(used) || !Number.isFinite(limit) || limit <= 0) return null;
+  return { used, limit };
+}
+
 function parseApiTime(value) {
   if (!value) return null;
   const epoch = Date.parse(value);
@@ -308,6 +349,7 @@ function sanitizeUsageData(data) {
       label: data.design?.label ?? null,
     },
     extra: sanitizeExtra(data.extra),
+    routine: sanitizeRoutine(data.routine),
     meta: {
       ready: Boolean(data.meta?.ready),
     },
@@ -315,6 +357,14 @@ function sanitizeUsageData(data) {
 
   if (clone.session.percentage === null && clone.weekly.percentage === null) return null;
   return clone;
+}
+
+function sanitizeRoutine(routine) {
+  if (!routine || typeof routine !== 'object') return null;
+  const used  = Number(routine.used);
+  const limit = Number(routine.limit);
+  if (!Number.isFinite(used) || !Number.isFinite(limit) || limit <= 0) return null;
+  return { used, limit };
 }
 
 function sanitizeExtra(extra) {

@@ -45,7 +45,7 @@
         </button>
         <div class="view-menu" id="viewMenu" hidden>
           <div class="view-menu-head">
-            <span class="view-menu-title">Models</span>
+            <span class="view-menu-title">View</span>
             <button class="view-menu-all" id="viewAllBtn" type="button">Select all</button>
           </div>
           <button class="view-menu-item" data-card="opus" id="opusMenuItem">
@@ -71,6 +71,14 @@
               Claude Design
             </span>
             <span class="view-menu-pct" id="designMenuPct">—</span>
+          </button>
+          <button class="view-menu-item" data-card="routine" id="routineMenuItem">
+            <span class="view-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+            <span class="view-menu-label">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Routine runs
+            </span>
+            <span class="view-menu-pct" id="routineMenuCount">—</span>
           </button>
         </div>
       </div>
@@ -229,6 +237,28 @@
           <span id="designReset">—</span>
         </div>
         <div class="reset-label" id="designLabel"></div>
+      </div>
+
+      <!-- Daily routine runs (count-based; shown only when the plan exposes it) -->
+      <div class="card" id="routineCard" style="display:none">
+        <div class="card-header">
+          <div class="card-title-row">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"/>
+              <polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+            <span class="card-title">Daily routine runs</span>
+          </div>
+          <span class="card-pct count" id="routinePct">—</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="routineBar" style="width:0%"></div>
+        </div>
+        <div class="reset-row">
+          <span id="routineReset">—</span>
+        </div>
       </div>
 
       <!-- Pro teaser (hidden for now, shown to free users) -->
