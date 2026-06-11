@@ -46,7 +46,8 @@ Pick from six color themes, from the default warm dark to a clean light mode, sw
 
 WHAT YOU SEE
 - Session usage (5-hour rolling window) with reset countdown
-- Weekly usage (all models combined) with reset day/time
+- Weekly usage (all models combined — Fable, Opus, Sonnet, Haiku) with reset day/time
+- Fable has no separate weekly cap and draws down the shared weekly limit 2x faster than Opus — flagged right on the weekly card
 - Opus weekly usage (per-model weekly sub-limit, on paid plans)
 - Sonnet weekly usage (per-model weekly sub-limit, on paid plans)
 - Claude Design usage (most trackers ignore this)
