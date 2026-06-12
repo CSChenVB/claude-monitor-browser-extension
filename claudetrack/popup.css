@@ -661,6 +661,8 @@ body {
   color: var(--text-dim);
 }
 
+.last-updated.error { color: var(--red); }
+
 .open-link {
   font-size: 11px;
   color: var(--accent-bright);
