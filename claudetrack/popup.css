@@ -460,6 +460,15 @@ body {
   letter-spacing: 0.01em;
 }
 
+/* Second explainer line under a subtitle (e.g. the Fable draw-down note).
+   Same quiet ink, upright type so it stays legible at 10px. */
+.card-note {
+  color: var(--text-dim);
+  font-size: 10px;
+  margin-top: -4px;
+  margin-bottom: 7px;
+}
+
 /* Shared reset note under the per-model weekly caps */
 .subcap-note {
   color: var(--text-dim);
