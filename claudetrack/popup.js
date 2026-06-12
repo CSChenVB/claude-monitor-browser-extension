@@ -142,6 +142,18 @@ function setTheme(theme) {
   const t = THEMES.includes(theme) ? theme : 'clay';
   applyTheme(t);
   chrome.storage.local.set({ theme: t });
+  mirrorTheme(t);
+}
+
+// chrome.storage is async, so the first paint would flash the default Clay
+// theme before the saved one applies. Mirror the choice in localStorage and
+// apply it synchronously at startup; chrome.storage stays the source of truth.
+function mirrorTheme(t) {
+  try { localStorage.setItem('theme', t); } catch { /* e.g. private mode */ }
+}
+
+function readThemeMirror() {
+  try { return localStorage.getItem('theme'); } catch { return null; }
 }
 
 // ── Time formatting ───────────────────────────────────────────────────────
@@ -279,6 +291,7 @@ function render(data) {
   }
 
   // ── Timestamp ────────────────────────────────────────────────────────
+  clearRefreshError();
   lastUpdated.textContent = formatTimestamp(ts);
 
   // ── Optional-cards menu ───────────────────────────────────────────────
@@ -497,6 +510,7 @@ function loadData() {
     ['claudeUsage', 'refreshInterval', 'authBackoff', 'cardPrefs', 'claudePlan', 'theme'],
     ({ claudeUsage, refreshInterval, authBackoff, cardPrefs: storedPrefs, claudePlan, theme }) => {
       applyTheme(theme);
+      if (theme) mirrorTheme(theme);
       if (storedPrefs && typeof storedPrefs === 'object') {
         cardPrefs = { ...storedPrefs };
       }
@@ -511,18 +525,51 @@ function loadData() {
 // ── Refresh flow ──────────────────────────────────────────────────────────
 
 let refreshInFlight = false;
+let refreshErrorTimer = null;
+let footerTextBeforeError = '';
+
+function refreshErrorMessage(reason) {
+  if (reason === 'auth-failed')   return 'Refresh failed — sign in to claude.ai';
+  if (reason === 'org-not-found') return 'Refresh failed — no organization found';
+  return 'Refresh failed — claude.ai unreachable';
+}
+
+function clearRefreshError() {
+  if (refreshErrorTimer === null) return;
+  clearTimeout(refreshErrorTimer);
+  refreshErrorTimer = null;
+  lastUpdated.classList.remove('error');
+}
+
+// Surface a failed manual refresh in the footer for a few seconds, then
+// restore the regular "Updated …" timestamp.
+function flashRefreshError(reason) {
+  clearRefreshError();
+  footerTextBeforeError = lastUpdated.textContent;
+  lastUpdated.textContent = refreshErrorMessage(reason);
+  lastUpdated.classList.add('error');
+  refreshErrorTimer = setTimeout(() => {
+    refreshErrorTimer = null;
+    lastUpdated.classList.remove('error');
+    lastUpdated.textContent = footerTextBeforeError;
+  }, 3000);
+}
 
 function triggerRefresh() {
   if (refreshInFlight) return;
   refreshInFlight = true;
   refreshBtn.classList.add('spinning');
 
-  chrome.runtime.sendMessage({ type: 'REFRESH' }, () => {
+  chrome.runtime.sendMessage({ type: 'REFRESH' }, (response) => {
+    const lastError = chrome.runtime.lastError; // only readable inside this callback
     refreshInFlight = false;
     refreshBtn.classList.remove('spinning');
     // Background persists before responding; re-render from storage directly.
     chrome.storage.local.get('claudeUsage', ({ claudeUsage }) => {
       render(claudeUsage || null);
+      if (lastError || !response || response.ok === false || response.refreshed === false) {
+        flashRefreshError(response && response.reason);
+      }
     });
   });
 }
@@ -567,6 +614,13 @@ document.addEventListener('click', (e) => {
   }
 });
 
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && viewMenu && !viewMenu.hidden) {
+    closeViewMenu();
+    viewBtn?.focus();
+  }
+});
+
 function openUsage() {
   chrome.tabs.create({ url: USAGE_URL, active: true });
   window.close();
@@ -596,10 +650,12 @@ chrome.storage.onChanged.addListener((changes) => {
   }
   if (changes.theme) {
     applyTheme(changes.theme.newValue);
+    if (changes.theme.newValue) mirrorTheme(changes.theme.newValue);
   }
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────
 
+applyTheme(readThemeMirror());   // sync, pre-storage — avoids the theme flash
 loadData();
 initPlan();
