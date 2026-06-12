@@ -47,7 +47,11 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === 'REFRESH') {
-    refreshUsage().then((result) => sendResponse({ ok: true, ...result }));
+    // Manual refresh bypasses the auth backoff: the user may have just signed
+    // back in, and waiting out the remaining skipped ticks would keep data stale.
+    refreshUsage({ force: true })
+      .then((result) => sendResponse({ ok: true, ...result }))
+      .catch((error) => sendResponse({ ok: false, reason: String(error?.message || error) }));
     return true;
   }
   if (msg.type === 'SET_INTERVAL') {
@@ -64,8 +68,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
 // ── Core refresh logic ────────────────────────────────────────────────────
 
-async function refreshUsage() {
-  if (await shouldSkipForAuthBackoff()) {
+async function refreshUsage({ force = false } = {}) {
+  if (!force && await shouldSkipForAuthBackoff()) {
     return { refreshed: false, reason: 'auth-backoff' };
   }
   const apiResult = await refreshUsageFromApi();
@@ -75,6 +79,7 @@ async function refreshUsage() {
   }
   if (apiResult.reason === 'auth-failed') {
     await bumpAuthBackoff();
+    markBadgeStale();
   }
   return { refreshed: false, reason: apiResult.reason || 'api-fetch-failed' };
 }
@@ -161,11 +166,13 @@ async function getClaudeOrgId() {
 }
 
 function selectOrg(payload) {
-  if (Array.isArray(payload) && payload.length > 0) return payload[0] || null;
-  if (Array.isArray(payload?.organizations) && payload.organizations.length > 0) {
-    return payload.organizations[0] || null;
-  }
-  return null;
+  const orgs = Array.isArray(payload) ? payload
+    : Array.isArray(payload?.organizations) ? payload.organizations
+    : [];
+  // Multi-org accounts (e.g. Team/Enterprise plus a personal workspace): prefer
+  // the org that hosts the chat product; otherwise keep the first entry.
+  const chatOrg = orgs.find(o => Array.isArray(o?.capabilities) && o.capabilities.includes('chat'));
+  return chatOrg || orgs[0] || null;
 }
 
 // Extract a displayable subscription label from the org payload. The
@@ -387,8 +394,10 @@ function normalizePct(value) {
   // bucket as null (meaning the bucket does not apply to the user's plan).
   if (value === null || value === undefined || value === '') return null;
   const num = Number(value);
-  if (!Number.isFinite(num) || num < 0 || num > 100) return null;
-  return num;
+  if (!Number.isFinite(num) || num < 0) return null;
+  // Overage can push utilization past 100; clamp instead of dropping the
+  // bucket, or the user would see stale data right when they hit the limit.
+  return Math.min(num, 100);
 }
 
 function shouldPersist(next) {
@@ -415,8 +424,15 @@ function updateBadge(data) {
   chrome.action.setBadgeBackgroundColor({ color });
 }
 
+// Gray out the badge while auth is failing, so a stale percentage isn't
+// mistaken for live data. The text (last known %) stays readable.
+function markBadgeStale() {
+  chrome.action.setBadgeBackgroundColor({ color: '#555555' });
+}
+
 // ── Restore badge on startup from cached data ────────────────────────────
 
-chrome.storage.local.get('claudeUsage', ({ claudeUsage }) => {
+chrome.storage.local.get(['claudeUsage', 'authBackoff'], ({ claudeUsage, authBackoff }) => {
   if (claudeUsage) updateBadge(claudeUsage);
+  if (authBackoff && authBackoff.fails > 0) markBadgeStale();
 });
