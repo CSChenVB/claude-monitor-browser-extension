@@ -152,7 +152,6 @@ body {
   font-size: 10px;
   color: var(--text-dim);
   letter-spacing: 0.04em;
-  text-transform: uppercase;
   font-variant-numeric: tabular-nums;
 }
 
@@ -461,12 +460,21 @@ body {
   letter-spacing: 0.01em;
 }
 
+/* Second explainer line under a subtitle (e.g. the Fable draw-down note).
+   Same quiet ink, upright type so it stays legible at 10px. */
 .card-note {
   color: var(--text-dim);
   font-size: 10px;
-  font-style: italic;
-  margin-top: -6px;
+  margin-top: -4px;
   margin-bottom: 7px;
+}
+
+/* Shared reset note under the per-model weekly caps */
+.subcap-note {
+  color: var(--text-dim);
+  font-size: 10px;
+  padding: 0 3px;
+  margin-top: -3px;
 }
 
 /* ── Compact secondary cards (weekly sub-caps + routine runs) ─────────────────
@@ -608,42 +616,6 @@ body {
 
 /* Dim cards when data is stale due to auth failure */
 .cards.dimmed .card { opacity: 0.5; }
-
-/* ── Pro teaser ──────────────────────────────────────────────────────────── */
-
-.pro-teaser {
-  margin: 0;
-}
-
-.pro-teaser-inner {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: rgba(217, 119, 87, 0.08);
-  border: 1px solid rgba(217, 119, 87, 0.22);
-  border-radius: var(--radius-sm);
-  font-size: 11.5px;
-  color: var(--text-sec);
-}
-
-.pro-teaser-inner svg {
-  color: var(--accent-bright);
-  flex-shrink: 0;
-}
-
-.pro-coming-soon {
-  color: var(--accent-bright);
-  font-weight: 600;
-  font-size: 11px;
-  letter-spacing: 0.03em;
-  background: rgba(217, 119, 87, 0.16);
-  border: 1px solid rgba(217, 119, 87, 0.32);
-  border-radius: 4px;
-  padding: 1px 6px;
-  cursor: default;
-  user-select: none;
-}
 
 /* ── Footer ──────────────────────────────────────────────────────────────── */
 

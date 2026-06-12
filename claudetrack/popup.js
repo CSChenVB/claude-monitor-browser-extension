@@ -2,7 +2,6 @@
 
 const USAGE_URL   = 'https://claude.ai/settings/usage';
 const SIGN_IN_URL = 'https://claude.ai/login';
-const PLAN        = 'free';
 
 const SUBCARDS = ['sonnet', 'opus', 'design'];
 // Per-sub-cap visibility. Tri-state: true = always show, false = always hide,
@@ -26,7 +25,7 @@ const planBadgeEl   = $('planBadge');
 const openUsageBtn    = $('openUsageBtn');
 const openUsagePage   = $('openUsagePage');
 const intervalSelect  = $('intervalSelect');
-const proTeaser     = $('proTeaser');
+const subcapNote    = $('subcapNote');
 
 // Session
 const sessionPct   = $('sessionPct');
@@ -92,21 +91,6 @@ const staleBanner   = $('staleBanner');
 const staleSubtitle = $('staleBannerSubtitle');
 const signInBtn     = $('signInBtn');
 const cardsEl       = $('cards');
-
-// ── Plan management ───────────────────────────────────────────────────────
-
-function initPlan() {
-  if (PLAN === 'pro') {
-    if (proTeaser) proTeaser.style.display = 'none';
-    initProFeatures();
-  } else {
-    if (proTeaser) proTeaser.style.display = 'flex';
-  }
-}
-
-function initProFeatures() {
-  // Reserved for pro tier
-}
 
 // ── Colour helpers ────────────────────────────────────────────────────────
 
@@ -277,6 +261,12 @@ function render(data) {
   renderSubCard('sonnet', sonnet, sonnetCard, sonnetPct, sonnetBar, sonnetReset, weekly?.resetTime);
   renderSubCard('opus',   opus,   opusCard,   opusPct,   opusBar,   opusReset, weekly?.resetTime);
   renderSubCard('design', design, designCard, designPct, designBar, designReset, weekly?.resetTime);
+
+  // Compact sub-caps hide their reset rows; one shared note covers them all.
+  if (subcapNote) {
+    const anySubcap = [sonnetCard, opusCard, designCard].some(el => el.style.display !== 'none');
+    subcapNote.style.display = anySubcap ? 'block' : 'none';
+  }
 
   // ── Daily routine runs (count-based; shown whenever the API returns it) ─
   renderRoutineCard(routine);
@@ -529,9 +519,9 @@ let refreshErrorTimer = null;
 let footerTextBeforeError = '';
 
 function refreshErrorMessage(reason) {
-  if (reason === 'auth-failed')   return 'Refresh failed — sign in to claude.ai';
-  if (reason === 'org-not-found') return 'Refresh failed — no organization found';
-  return 'Refresh failed — claude.ai unreachable';
+  if (reason === 'auth-failed')   return 'Refresh failed: sign in to claude.ai';
+  if (reason === 'org-not-found') return 'Refresh failed: no organization found';
+  return 'Refresh failed: claude.ai unreachable';
 }
 
 function clearRefreshError() {
@@ -658,4 +648,3 @@ chrome.storage.onChanged.addListener((changes) => {
 
 applyTheme(readThemeMirror());   // sync, pre-storage — avoids the theme flash
 loadData();
-initPlan();
