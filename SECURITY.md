@@ -137,6 +137,54 @@ job. A compromised release is bounded by what the manifest already grants:
 So minimal permissions are not a cosmetic detail — they are the cap on a
 supply-chain compromise.
 
+### A compromised service worker is still bounded to three paths
+
+A fair question from any security reviewer: the background service worker runs
+inside the already-trusted extension, on a timer, with `credentials: 'include'`
+— so could a **compromised** build quietly walk other authenticated `claude.ai`
+endpoints and exfiltrate whatever they return? With this manifest, no. The
+reason is that `host_permissions` are scoped to three **exact paths**, not to
+`https://claude.ai/*`:
+
+- `https://claude.ai/api/organizations`
+- `https://claude.ai/api/organizations/*/usage`
+- `https://claude.ai/v1/code/routines/run-budget`
+
+That path-level scoping ([`claudetrack/manifest.json`](claudetrack/manifest.json))
+bounds the worst case in two independent ways.
+
+**1. It can only read those three endpoints.** Attaching the session cookie is
+not the same as being able to read the response. A credentialed `fetch` to any
+other URL — a different path on `claude.ai`, or any other domain — is an
+ordinary cross-origin request for which the extension holds no matching host
+permission. The browser applies the normal CORS rules, and `claude.ai` does not
+return headers granting a browser extension read access, so the response is
+**opaque and unreadable**. Pivoting to a settings, account, member, or billing
+endpoint to harvest what it returns simply does not work: the bytes never reach
+the worker.
+
+**2. Reading anything else requires widening `host_permissions`.** To make a new
+endpoint readable, a malicious build has to add it to the manifest — and that is
+the same non-silent escalation described above: the browser surfaces a
+new-permission prompt and **disables the extension until you re-approve it**, the
+change is visible in this repository's public diff, and it is subject to store
+review. There is no quiet path from "three read-only endpoints" to "the rest of
+your account."
+
+**What a compromised build can still do** — without any prompt — is *send* what
+it already reads (org UUID, usage percentages, plan tier) to an attacker, since
+a fire-and-forget request needs no readable response. That is the entire blast
+radius: the same low-value metadata, exfiltrated. No new class of data — chats,
+projects, organization members, billing, or API keys — becomes reachable,
+because reaching any of it would require a permission this manifest does not
+grant. The polling interval changes how often that metadata could be sent, not
+what is in scope.
+
+All of this is checkable against
+[`claudetrack/manifest.json`](claudetrack/manifest.json) (the three host
+permissions) and [`claudetrack/background.js`](claudetrack/background.js) (every
+request is a `GET` to one of those URLs).
+
 ### Why a claude.ai session does not expose API keys
 
 A common (and reasonable) worry: "if a compromised extension rides my
