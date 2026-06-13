@@ -90,6 +90,7 @@ const extraCap      = $('extraCap');
 const extraReset    = $('extraReset');
 const extraPct      = $('extraPct');
 const extraBar      = $('extraBar');
+const extraBalance  = $('extraBalance');
 const staleBanner   = $('staleBanner');
 const staleSubtitle = $('staleBannerSubtitle');
 const signInBtn     = $('signInBtn');
@@ -188,14 +189,19 @@ function formatShortDate(epochMs) {
 }
 
 function formatCredits(amount, currency) {
-  const symbol = currency === 'USD' ? '$' : (currency || '');
-  // Always two decimals: this is a money value, so $5.50 must not render as
-  // "$5.5" and a $100 cap reads as "$100.00".
-  const formatted = amount.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-  return `${symbol}${formatted}`;
+  // Real currency symbol (€ / £ / $) via Intl, not the ISO code, and always two
+  // decimals (a $5.50 spend must not render as "$5.5"). Falls back to a plain
+  // prefix if the API ever sends an unknown currency code.
+  const cur = (typeof currency === 'string' && currency) ? currency : 'USD';
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: cur,
+      currencyDisplay: 'narrowSymbol',
+    }).format(amount);
+  } catch {
+    return `${cur} ${amount.toFixed(2)}`;
+  }
 }
 
 function formatTimestamp(epochMs) {
@@ -300,6 +306,10 @@ function render(data) {
     extraPct.textContent = `${Math.round(xPct)}%`;
     extraBar.style.width = `${xPct}%`;
     applyColor(extraPct, extraBar, xPct);
+
+    extraBalance.textContent = extra.balance != null
+      ? `Balance ${formatCredits(extra.balance, extra.currency)}`
+      : '';
 
     // The usage API carries no reset timestamp for credits; they reset on the
     // 1st of each month, so derive the countdown locally.

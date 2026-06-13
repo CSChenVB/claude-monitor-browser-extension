@@ -551,10 +551,19 @@ body {
   justify-content: space-between;
 }
 
+.extra-banner-foot {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.extra-banner-balance { color: var(--text-sec); font-size: 10.5px; }
+.extra-banner-balance:empty { display: none; }
+
 .extra-banner-reset {
   color: var(--text-dim);
   font-size: 10.5px;
-  text-align: right;
+  margin-left: auto;
 }
 
 .extra-banner-reset:empty { display: none; }

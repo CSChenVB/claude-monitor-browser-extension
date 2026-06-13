@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Claude Usage Monitor: Session, Weekly & Design",
   "short_name": "Claude Usage",
-  "version": "1.6.9",
+  "version": "1.7.0",
   "description": "Track your Claude.ai usage in real time. See session and weekly limits, reset times, and color-coded progress — in your toolbar.",
   "author": "Digital Advanced Solutions",
   "minimum_chrome_version": "116",
@@ -10,6 +10,7 @@
   "host_permissions": [
     "https://claude.ai/api/organizations",
     "https://claude.ai/api/organizations/*/usage",
+    "https://claude.ai/api/organizations/*/prepaid/credits",
     "https://claude.ai/v1/code/routines/run-budget"
   ],
   "homepage_url": "https://claude-monitor.com/",

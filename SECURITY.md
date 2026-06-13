@@ -20,7 +20,7 @@ Report privately by email to **martin.sadofschi@gmail.com** with:
 
 - A description of the issue and its impact.
 - Steps to reproduce, or a proof of concept.
-- The extension version (shown in the popup header, e.g. `v1.6.9`) and your
+- The extension version (shown in the popup header, e.g. `v1.7.0`) and your
   browser + version.
 
 You can expect an initial acknowledgement within **5 business days**. Valid
@@ -61,6 +61,7 @@ Declared in [`claudetrack/manifest.json`](claudetrack/manifest.json):
 | `alarms`                                      | Schedule the periodic refresh                          | Nothing else                                                |
 | host: `claude.ai/api/organizations`           | Read the org list to find the active org UUID + plan   | No other path on claude.ai                                  |
 | host: `claude.ai/api/organizations/*/usage`   | Read usage statistics                                  | Read-only; cannot write                                     |
+| host: `claude.ai/api/organizations/*/prepaid/credits` | Read your prepaid usage-credit **balance** (shown in the extra-credits banner) | Read-only; no payment methods, cards, or invoices |
 | host: `claude.ai/v1/code/routines/run-budget` | Read the daily routine-run budget                      | Read-only; cannot write                                     |
 
 There is **no** `cookies`, `tabs`, `scripting`, `webRequest`, `<all_urls>`, or
@@ -74,7 +75,7 @@ any broad host permission. There are **no content scripts**, no
 | Session (5-hour) usage %                             | Your chats, projects, or files                            |
 | Weekly usage % (all models + per-model sub-caps)     | Organization members / member list                        |
 | Daily routine-run count                              | Billing management or payment methods                     |
-| Extra-usage credit totals                            | API key management (different domain — see threat model)  |
+| Extra-usage credit spend + prepaid balance           | API key management (different domain — see threat model)  |
 | Your organization UUID                               | Any non-`claude.ai` domain                                |
 | Your plan tier label (e.g. `Max 5x`)                 | The value of your session cookie or auth token            |
 
@@ -122,9 +123,9 @@ It is worth taking seriously — and it is also where minimal permissions do the
 job. A compromised release is bounded by what the manifest already grants:
 
 - With the **current** permissions, the most a malicious build could do is read
-  your usage metadata + org UUID/tier and try to send it somewhere. That is the
-  entire blast radius: **low-value usage numbers and a plan name.** No chats, no
-  members, no keys, no billing.
+  your usage metadata + org UUID/tier + prepaid credit balance and try to send it
+  somewhere. That is the entire blast radius: **low-value usage numbers, a plan
+  name, and a credit balance.** No chats, no members, no keys, no payment methods.
 - To do **more** — reach other endpoints, other domains, or exfiltrate to an
   attacker server — a malicious version must **expand `host_permissions`** (or
   add `cookies`/`scripting`/etc.) in the manifest. That is not silent:
@@ -137,23 +138,24 @@ job. A compromised release is bounded by what the manifest already grants:
 So minimal permissions are not a cosmetic detail — they are the cap on a
 supply-chain compromise.
 
-### A compromised service worker is still bounded to three paths
+### A compromised service worker is still bounded to four paths
 
 A fair question from any security reviewer: the background service worker runs
 inside the already-trusted extension, on a timer, with `credentials: 'include'`
 — so could a **compromised** build quietly walk other authenticated `claude.ai`
 endpoints and exfiltrate whatever they return? With this manifest, no. The
-reason is that `host_permissions` are scoped to three **exact paths**, not to
+reason is that `host_permissions` are scoped to four **exact paths**, not to
 `https://claude.ai/*`:
 
 - `https://claude.ai/api/organizations`
 - `https://claude.ai/api/organizations/*/usage`
+- `https://claude.ai/api/organizations/*/prepaid/credits`
 - `https://claude.ai/v1/code/routines/run-budget`
 
 That path-level scoping ([`claudetrack/manifest.json`](claudetrack/manifest.json))
 bounds the worst case in two independent ways.
 
-**1. It can only read those three endpoints.** Attaching the session cookie is
+**1. It can only read those four endpoints.** Attaching the session cookie is
 not the same as being able to read the response. A credentialed `fetch` to any
 other URL — a different path on `claude.ai`, or any other domain — is an
 ordinary cross-origin request for which the extension holds no matching host
@@ -168,20 +170,20 @@ endpoint readable, a malicious build has to add it to the manifest — and that 
 the same non-silent escalation described above: the browser surfaces a
 new-permission prompt and **disables the extension until you re-approve it**, the
 change is visible in this repository's public diff, and it is subject to store
-review. There is no quiet path from "three read-only endpoints" to "the rest of
+review. There is no quiet path from "four read-only endpoints" to "the rest of
 your account."
 
 **What a compromised build can still do** — without any prompt — is *send* what
-it already reads (org UUID, usage percentages, plan tier) to an attacker, since
+it already reads (org UUID, usage percentages, plan tier, credit balance) to an attacker, since
 a fire-and-forget request needs no readable response. That is the entire blast
 radius: the same low-value metadata, exfiltrated. No new class of data — chats,
-projects, organization members, billing, or API keys — becomes reachable,
-because reaching any of it would require a permission this manifest does not
-grant. The polling interval changes how often that metadata could be sent, not
-what is in scope.
+projects, organization members, payment methods, invoices, or API keys —
+becomes reachable, because reaching any of it would require a permission this
+manifest does not grant. The polling interval changes how often that metadata
+could be sent, not what is in scope.
 
 All of this is checkable against
-[`claudetrack/manifest.json`](claudetrack/manifest.json) (the three host
+[`claudetrack/manifest.json`](claudetrack/manifest.json) (the four host
 permissions) and [`claudetrack/background.js`](claudetrack/background.js) (every
 request is a `GET` to one of those URLs).
 
@@ -283,7 +285,7 @@ The store package is the unmodified, unminified source in
 [`claudetrack/`](claudetrack/). To verify the version you installed matches this
 repo:
 
-1. Note the version in the popup header (e.g. `v1.6.9`) and check out the
+1. Note the version in the popup header (e.g. `v1.7.0`) and check out the
    matching commit/tag.
 2. Compare the installed extension files (Chrome:
    `chrome://extensions` → Inspect; or unpack the store CRX/XPI) against
@@ -317,17 +319,17 @@ detached signature `SHA256SUMS-v<version>.txt.asc`. To verify:
 
 ```sh
 # 1. Confirm the checksums file was signed by the key above:
-gpg --verify SHA256SUMS-v1.6.9.txt.asc SHA256SUMS-v1.6.9.txt
+gpg --verify SHA256SUMS-v1.7.0.txt.asc SHA256SUMS-v1.7.0.txt
 
 # 2. Confirm the ZIP matches the signed hash:
-sha256sum -c SHA256SUMS-v1.6.9.txt          # Linux / macOS
+sha256sum -c SHA256SUMS-v1.7.0.txt          # Linux / macOS
 ```
 
 On Windows:
 
 ```powershell
-Get-FileHash -Algorithm SHA256 claude-usage-monitor-chrome-v1.6.9.zip
-# compare the hash against the line in SHA256SUMS-v1.6.9.txt
+Get-FileHash -Algorithm SHA256 claude-usage-monitor-chrome-v1.7.0.zip
+# compare the hash against the line in SHA256SUMS-v1.7.0.txt
 ```
 
 A "Good signature" from the fingerprint above plus a matching hash means the
