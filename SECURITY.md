@@ -185,6 +185,16 @@ All of this is checkable against
 permissions) and [`claudetrack/background.js`](claudetrack/background.js) (every
 request is a `GET` to one of those URLs).
 
+### No dependency supply chain
+
+The extension has **zero third-party runtime dependencies**: no `package.json`,
+no `node_modules`, no bundler, and no build step. The JavaScript in
+[`claudetrack/`](claudetrack/) is exactly what ships to the store. There is no
+npm/lockfile layer for a malicious, compromised, or typosquatted package to ride
+in through — the only code that runs is the code in this repository. This is why
+pinned dependency versions do not apply here: there are no dependencies to pin,
+which removes that supply-chain surface entirely rather than managing it.
+
 ### Why a claude.ai session does not expose API keys
 
 A common (and reasonable) worry: "if a compromised extension rides my
