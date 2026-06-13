@@ -278,6 +278,10 @@ function mapExtraUsage(extra) {
     usedCredits,
     monthlyLimit,
     currency: typeof extra.currency === 'string' ? extra.currency : 'USD',
+    // Every other bucket exposes its reset as `resets_at` (ISO string); follow
+    // that convention. Optional — fails soft to null (popup falls back to a
+    // static "Resets monthly" hint) if this payload doesn't carry it.
+    resetTime: parseApiTime(extra.resets_at),
   };
 }
 
@@ -388,6 +392,7 @@ function sanitizeExtra(extra) {
     usedCredits,
     monthlyLimit,
     currency: typeof extra.currency === 'string' ? extra.currency : 'USD',
+    resetTime: extra.resetTime ?? null,
   };
 }
 

@@ -87,6 +87,7 @@ const designMenuPct  = $('designMenuPct');
 const extraBanner   = $('extraBanner');
 const extraUsed     = $('extraUsed');
 const extraCap      = $('extraCap');
+const extraReset    = $('extraReset');
 const staleBanner   = $('staleBanner');
 const staleSubtitle = $('staleBannerSubtitle');
 const signInBtn     = $('signInBtn');
@@ -279,6 +280,13 @@ function render(data) {
     extraBanner.style.display = 'flex';
     extraUsed.textContent = formatCredits(extra.usedCredits, extra.currency);
     extraCap.textContent  = formatCredits(extra.monthlyLimit, extra.currency);
+    // Show the precise countdown when the API gives a reset timestamp; otherwise
+    // fall back to the monthly cadence implied by the monthly_limit field.
+    const xReset = formatTimeUntil(extra.resetTime);
+    const xDate  = xReset ? formatResetDate(extra.resetTime) : '';
+    extraReset.textContent = xReset
+      ? (xDate ? `${xReset} (${xDate})` : xReset)
+      : 'Resets monthly';
   } else {
     extraBanner.style.display = 'none';
   }
