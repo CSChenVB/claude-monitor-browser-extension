@@ -136,6 +136,11 @@ async function refreshUsageFromApi() {
     // Routine budget is a separate, optional fetch — never let it break the
     // refresh. Null when unavailable (other plan, auth, beta changed) → card hides.
     data.routine = await fetchRoutineBudget(activeOrgId);
+    // Prepaid credit balance — separate optional fetch; only meaningful when
+    // extra usage is enabled. Fail-soft to null so it never breaks the refresh.
+    if (data.extra) {
+      data.extra.balance = await fetchPrepaidCredits(activeOrgId);
+    }
     const stored = await persistAndBadge(data);
     return {
       refreshed: stored,
@@ -314,6 +319,23 @@ function mapRoutineBudget(data) {
   return { used, limit };
 }
 
+async function fetchPrepaidCredits(orgId) {
+  try {
+    const data = await fetchClaudeJson(`${API_BASE}/organizations/${orgId}/prepaid/credits`);
+    return mapPrepaidCredits(data);
+  } catch {
+    return null; // fail soft: no balance / endpoint unavailable → hide the line
+  }
+}
+
+// Response shape: { amount: 500, currency: "EUR", ... }. amount is in cents.
+function mapPrepaidCredits(data) {
+  if (!data || typeof data !== 'object') return null;
+  const amount = Number(data.amount);
+  if (!Number.isFinite(amount)) return null;
+  return amount / 100;
+}
+
 function parseApiTime(value) {
   if (!value) return null;
   const epoch = Date.parse(value);
@@ -392,6 +414,7 @@ function sanitizeExtra(extra) {
     usedCredits,
     monthlyLimit,
     currency: typeof extra.currency === 'string' ? extra.currency : 'USD',
+    balance: extra.balance == null || !Number.isFinite(Number(extra.balance)) ? null : Number(extra.balance),
   };
 }
 

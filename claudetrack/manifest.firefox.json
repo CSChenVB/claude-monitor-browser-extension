@@ -18,6 +18,7 @@
   "host_permissions": [
     "https://claude.ai/api/organizations",
     "https://claude.ai/api/organizations/*/usage",
+    "https://claude.ai/api/organizations/*/prepaid/credits",
     "https://claude.ai/v1/code/routines/run-budget"
   ],
   "homepage_url": "https://claude-monitor.com/",
