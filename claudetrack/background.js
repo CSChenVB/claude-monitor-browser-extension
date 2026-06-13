@@ -278,9 +278,11 @@ function mapExtraUsage(extra) {
     usedCredits,
     monthlyLimit,
     currency: typeof extra.currency === 'string' ? extra.currency : 'USD',
-    // Every other bucket exposes its reset as `resets_at` (ISO string); follow
-    // that convention. Optional — fails soft to null (popup falls back to a
-    // static "Resets monthly" hint) if this payload doesn't carry it.
+    // Verified the live extra_usage shape (on a disabled account): the only
+    // fields are is_enabled / monthly_limit / used_credits / utilization /
+    // currency / disabled_reason — there is NO resets_at. We still parse it in
+    // case an *enabled* account exposes one; otherwise it's null and the popup
+    // shows a static "Resets monthly" hint (monthly_limit ⇒ monthly cycle).
     resetTime: parseApiTime(extra.resets_at),
   };
 }
