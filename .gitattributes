@@ -1,0 +1,7 @@
+# Signed release checksums and their detached signatures must stay LF. Windows
+# autocrlf was rewriting them to CRLF on checkout after they were generated and
+# signed with LF, so the SHA256SUMS .txt uploaded as a release asset no longer
+# matched its detached .asc signature. Pin LF on every platform so the GPG
+# signature verifies byte-for-byte.
+signing/SHA256SUMS-*.txt     text eol=lf
+signing/SHA256SUMS-*.txt.asc text eol=lf
