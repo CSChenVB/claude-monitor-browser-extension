@@ -92,6 +92,32 @@
           </div><!-- /cardsSection -->
           <div class="view-menu-divider" id="themeDivider" style="display:none"></div>
           <div class="view-menu-section">
+            <div class="view-menu-head"><span class="view-menu-title">Design</span></div>
+            <div class="layout-options" id="layoutOptions">
+              <button class="layout-option" data-layout="classic" aria-pressed="false">
+                <span class="layout-thumb"><svg viewBox="0 0 38 28" aria-hidden="true"><rect class="to" x="5" y="4" width="28" height="8" rx="2.5" stroke-width="1.3"/><rect class="tr2" x="8" y="9" width="14" height="2" rx="1"/><rect class="to" x="5" y="15" width="28" height="8" rx="2.5" stroke-width="1.3"/><rect class="tr2" x="8" y="20" width="10" height="2" rx="1"/></svg></span>
+                <span class="layout-label"><span class="layout-name">Classic</span><span class="layout-desc">Original design</span></span>
+                <span class="layout-check"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              </button>
+              <button class="layout-option" data-layout="hybrid" aria-pressed="false">
+                <span class="layout-thumb"><svg viewBox="0 0 38 28" aria-hidden="true"><circle class="tr" cx="12" cy="9" r="3.4" fill="none" stroke-width="1.6"/><circle class="tr" cx="26" cy="9" r="3.4" fill="none" stroke-width="1.6"/><rect class="tb" x="7" y="17" width="24" height="2.2" rx="1.1"/><rect class="tb" x="7" y="21.5" width="15" height="2.2" rx="1.1"/></svg></span>
+                <span class="layout-label"><span class="layout-name">Mixed</span><span class="layout-desc">Rings + list</span></span>
+                <span class="layout-check"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              </button>
+              <button class="layout-option" data-layout="bento" aria-pressed="false">
+                <span class="layout-thumb"><svg viewBox="0 0 38 28" aria-hidden="true"><circle class="tr" cx="12" cy="9" r="3.2" fill="none" stroke-width="1.6"/><circle class="tr" cx="26" cy="9" r="3.2" fill="none" stroke-width="1.6"/><circle class="tr" cx="12" cy="20" r="3.2" fill="none" stroke-width="1.6"/><circle class="tr" cx="26" cy="20" r="3.2" fill="none" stroke-width="1.6"/></svg></span>
+                <span class="layout-label"><span class="layout-name">Grid</span><span class="layout-desc">Cards with rings</span></span>
+                <span class="layout-check"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              </button>
+              <button class="layout-option" data-layout="list" aria-pressed="false">
+                <span class="layout-thumb"><svg viewBox="0 0 38 28" aria-hidden="true"><rect class="tb" x="7" y="6" width="18" height="2.4" rx="1.2"/><rect class="tr2" x="28" y="5" width="4" height="4" rx="1"/><rect class="tb" x="7" y="13" width="18" height="2.4" rx="1.2"/><rect class="tr2" x="28" y="12" width="4" height="4" rx="1"/><rect class="tb" x="7" y="20" width="14" height="2.4" rx="1.2"/></svg></span>
+                <span class="layout-label"><span class="layout-name">List</span><span class="layout-desc">Compact rows</span></span>
+                <span class="layout-check"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              </button>
+            </div>
+          </div>
+          <div class="view-menu-divider"></div>
+          <div class="view-menu-section">
             <div class="view-menu-head"><span class="view-menu-title">Theme</span></div>
             <div class="theme-swatches" id="themeSwatches">
               <button class="theme-swatch" data-theme="clay" title="Clay" aria-label="Clay theme" aria-pressed="false"></button>
@@ -169,6 +195,7 @@
             <span class="card-title">Current Session</span>
           </div>
           <span class="card-pct" id="sessionPct">—</span>
+          <svg class="card-ring" viewBox="0 0 44 44" aria-hidden="true"><circle class="card-ring-track" cx="22" cy="22" r="19"/><circle class="card-ring-val" id="sessionRing" cx="22" cy="22" r="19" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 22 22)"/><text class="card-ring-text" id="sessionRingTxt" x="22" y="22">—</text></svg>
         </div>
         <div class="progress-track">
           <div class="progress-fill" id="sessionBar" style="width:0%"></div>
@@ -193,6 +220,7 @@
             <span class="card-title">Weekly · all models</span>
           </div>
           <span class="card-pct" id="weeklyPct">—</span>
+          <svg class="card-ring" viewBox="0 0 44 44" aria-hidden="true"><circle class="card-ring-track" cx="22" cy="22" r="19"/><circle class="card-ring-val" id="weeklyRing" cx="22" cy="22" r="19" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 22 22)"/><text class="card-ring-text" id="weeklyRingTxt" x="22" y="22">—</text></svg>
         </div>
         <div class="card-subtitle">Includes Fable, Opus, Sonnet &amp; Haiku</div>
         <div class="card-note">Fable draws down 2&times; faster than Opus</div>
@@ -218,6 +246,7 @@
             <span class="card-title">Opus weekly</span>
           </div>
           <span class="card-pct" id="opusPct">—</span>
+          <svg class="card-ring" viewBox="0 0 44 44" aria-hidden="true"><circle class="card-ring-track" cx="22" cy="22" r="19"/><circle class="card-ring-val" id="opusRing" cx="22" cy="22" r="19" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 22 22)"/><text class="card-ring-text" id="opusRingTxt" x="22" y="22">—</text></svg>
         </div>
         <div class="progress-track">
           <div class="progress-fill" id="opusBar" style="width:0%"></div>
@@ -239,6 +268,7 @@
             <span class="card-title">Sonnet weekly</span>
           </div>
           <span class="card-pct" id="sonnetPct">—</span>
+          <svg class="card-ring" viewBox="0 0 44 44" aria-hidden="true"><circle class="card-ring-track" cx="22" cy="22" r="19"/><circle class="card-ring-val" id="sonnetRing" cx="22" cy="22" r="19" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 22 22)"/><text class="card-ring-text" id="sonnetRingTxt" x="22" y="22">—</text></svg>
         </div>
         <div class="progress-track">
           <div class="progress-fill" id="sonnetBar" style="width:0%"></div>
@@ -261,6 +291,7 @@
             <span class="card-title">Claude Design</span>
           </div>
           <span class="card-pct" id="designPct">—</span>
+          <svg class="card-ring" viewBox="0 0 44 44" aria-hidden="true"><circle class="card-ring-track" cx="22" cy="22" r="19"/><circle class="card-ring-val" id="designRing" cx="22" cy="22" r="19" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 22 22)"/><text class="card-ring-text" id="designRingTxt" x="22" y="22">—</text></svg>
         </div>
         <div class="progress-track">
           <div class="progress-fill" id="designBar" style="width:0%"></div>
@@ -287,6 +318,7 @@
             <span class="card-title">Daily routine runs</span>
           </div>
           <span class="card-pct count" id="routinePct">—</span>
+          <svg class="card-ring" viewBox="0 0 44 44" aria-hidden="true"><circle class="card-ring-track" cx="22" cy="22" r="19"/><circle class="card-ring-val" id="routineRing" cx="22" cy="22" r="19" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 22 22)"/><text class="card-ring-text" id="routineRingTxt" x="22" y="22">—</text></svg>
         </div>
         <div class="progress-track">
           <div class="progress-fill" id="routineBar" style="width:0%"></div>
