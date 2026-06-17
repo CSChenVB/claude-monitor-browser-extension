@@ -98,6 +98,15 @@ const staleSubtitle = $('staleBannerSubtitle');
 const signInBtn     = $('signInBtn');
 const cardsEl       = $('cards');
 
+// Ring gauges (Mixed & Grid layouts) + the layout picker
+const sessionRing    = $('sessionRing');
+const sessionRingTxt = $('sessionRingTxt');
+const weeklyRing     = $('weeklyRing');
+const weeklyRingTxt  = $('weeklyRingTxt');
+const routineRing    = $('routineRing');
+const routineRingTxt = $('routineRingTxt');
+const layoutOptions  = $('layoutOptions');
+
 // ── Colour helpers ────────────────────────────────────────────────────────
 
 function colorClass(pct) {
@@ -112,6 +121,16 @@ function applyColor(pctEl, barEl, pct) {
     pctEl.classList.toggle(c, c === cls);
     barEl.classList.toggle(c, c === cls);
   });
+}
+
+// Drive a ring gauge from a percentage. pathLength=100 means the dash value is
+// the raw percent ("<pct> 100"); colour uses the same thresholds as the bars.
+function setRing(valEl, txtEl, pct, label) {
+  if (!valEl) return;
+  const p = Math.min(100, Math.max(0, Math.round(pct)));
+  valEl.setAttribute('stroke-dasharray', `${p} 100`);
+  ['green', 'yellow', 'red'].forEach(c => valEl.classList.toggle(c, c === colorClass(pct)));
+  if (txtEl) txtEl.textContent = label;
 }
 
 // ── Theme ───────────────────────────────────────────────────────────────────
@@ -144,6 +163,38 @@ function mirrorTheme(t) {
 
 function readThemeMirror() {
   try { return localStorage.getItem('theme'); } catch { return null; }
+}
+
+// ── Layout (Mixed / Grid / List; selectable from the View menu) ───────────────
+
+// 'classic' is the original design (the base CSS with no layout overrides). It
+// stays the default so existing users keep the UI they installed for; the other
+// three are opt-in from the View menu.
+const LAYOUTS = ['classic', 'hybrid', 'bento', 'list'];
+
+function applyLayout(layout) {
+  const l = LAYOUTS.includes(layout) ? layout : 'classic';
+  document.documentElement.setAttribute('data-layout', l);
+  layoutOptions?.querySelectorAll('.layout-option').forEach(opt => {
+    opt.setAttribute('aria-pressed', opt.dataset.layout === l ? 'true' : 'false');
+  });
+}
+
+function setLayout(layout) {
+  const l = LAYOUTS.includes(layout) ? layout : 'classic';
+  applyLayout(l);
+  chrome.storage.local.set({ layout: l });
+  mirrorLayout(l);
+}
+
+// Same anti-flash trick as the theme: mirror to localStorage for a synchronous
+// first paint; chrome.storage stays the source of truth.
+function mirrorLayout(l) {
+  try { localStorage.setItem('layout', l); } catch { /* e.g. private mode */ }
+}
+
+function readLayoutMirror() {
+  try { return localStorage.getItem('layout'); } catch { return null; }
 }
 
 // ── Time formatting ───────────────────────────────────────────────────────
@@ -255,8 +306,10 @@ function render(data) {
     sessionPct.textContent = `${p}%`;
     sessionBar.style.width = `${p}%`;
     applyColor(sessionPct, sessionBar, sPct);
+    setRing(sessionRing, sessionRingTxt, sPct, `${p}%`);
   } else {
     sessionPct.textContent = '—';
+    setRing(sessionRing, sessionRingTxt, 0, '—');
   }
 
   const sReset   = formatTimeUntil(session?.resetTime);
@@ -273,8 +326,10 @@ function render(data) {
     weeklyPct.textContent = `${p}%`;
     weeklyBar.style.width = `${p}%`;
     applyColor(weeklyPct, weeklyBar, wPct);
+    setRing(weeklyRing, weeklyRingTxt, wPct, `${p}%`);
   } else {
     weeklyPct.textContent = '—';
+    setRing(weeklyRing, weeklyRingTxt, 0, '—');
   }
 
   const wReset = formatTimeUntil(weekly?.resetTime);
@@ -374,6 +429,7 @@ function renderSubCard(key, bucket, cardEl, pctEl, barEl, resetEl, weeklyResetTi
   pctEl.textContent = `${p}%`;
   barEl.style.width = `${p}%`;
   applyColor(pctEl, barEl, hasData ? pct : 0);
+  setRing($(key + 'Ring'), $(key + 'RingTxt'), hasData ? pct : 0, `${p}`);
 
   // Sub-caps reset with the weekly window, so fall back to the weekly reset.
   const resetTime = bucket?.resetTime ?? weeklyResetTime ?? null;
@@ -418,6 +474,7 @@ function renderRoutineCard(routine) {
   routinePct.textContent = `${used} / ${limit}`;
   routineBar.style.width = `${pct}%`;
   applyColor(routinePct, routineBar, pct);
+  setRing(routineRing, routineRingTxt, pct, `${used}`);
   routineReset.textContent = 'Resets daily';
   routineCard.title = 'Resets daily';
 }
@@ -575,10 +632,12 @@ function loadData() {
   }
 
   chrome.storage.local.get(
-    ['claudeUsage', 'refreshInterval', 'authBackoff', 'cardPrefs', 'claudePlan', 'theme'],
-    ({ claudeUsage, refreshInterval, authBackoff, cardPrefs: storedPrefs, claudePlan, theme }) => {
+    ['claudeUsage', 'refreshInterval', 'authBackoff', 'cardPrefs', 'claudePlan', 'theme', 'layout'],
+    ({ claudeUsage, refreshInterval, authBackoff, cardPrefs: storedPrefs, claudePlan, theme, layout }) => {
       applyTheme(theme);
       if (theme) mirrorTheme(theme);
+      applyLayout(layout);
+      if (layout) mirrorLayout(layout);
       if (storedPrefs && typeof storedPrefs === 'object') {
         cardPrefs = { ...storedPrefs };
       }
@@ -676,6 +735,13 @@ themeSwatches?.addEventListener('click', (e) => {
   setTheme(sw.dataset.theme);
 });
 
+layoutOptions?.addEventListener('click', (e) => {
+  const opt = e.target.closest('.layout-option');
+  if (!opt) return;
+  e.stopPropagation();
+  setLayout(opt.dataset.layout);
+});
+
 document.addEventListener('click', (e) => {
   if (viewMenu && !viewMenu.hidden && viewWrap && !viewWrap.contains(e.target)) {
     closeViewMenu();
@@ -720,9 +786,14 @@ chrome.storage.onChanged.addListener((changes) => {
     applyTheme(changes.theme.newValue);
     if (changes.theme.newValue) mirrorTheme(changes.theme.newValue);
   }
+  if (changes.layout) {
+    applyLayout(changes.layout.newValue);
+    if (changes.layout.newValue) mirrorLayout(changes.layout.newValue);
+  }
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────
 
-applyTheme(readThemeMirror());   // sync, pre-storage — avoids the theme flash
+applyTheme(readThemeMirror());     // sync, pre-storage — avoids the theme flash
+applyLayout(readLayoutMirror());   // same, for the layout
 loadData();
