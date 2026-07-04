@@ -7,7 +7,6 @@ const SUBCARDS = ['fable', 'sonnet', 'opus', 'design'];
 // Per-sub-cap visibility. Tri-state: true = always show, false = always hide,
 // undefined = auto (show only when the API returns data for it this week).
 let cardPrefs  = {};
-let planSubcaps = {};   // which sub-caps the plan offers: { fable, opus, sonnet, design }
 let lastData   = null;
 
 // Optional cards selectable from the View menu (weekly sub-caps + daily routine).
@@ -414,10 +413,13 @@ function creditsReasonText(reason) {
 
 // ── Sub-card rendering ──────────────────────────────────────────────────────
 
-// A sub-cap is offered (listed in the filter / eligible to show) when the plan
-// includes it, or when the API is already returning data for it.
+// A sub-cap is offered (listed in the filter / eligible to show) only when the
+// API is actually returning a weekly cap for it. The limits[] array is the
+// reliable per-model signal, so we no longer assume every paid plan has every
+// sub-cap: Anthropic exposes e.g. a Fable weekly cap while folding Opus and
+// Sonnet into the all-models weekly limit, so those cards must not appear at 0%.
 function subcapOffered(key, hasData) {
-  return Boolean(planSubcaps[key]) || hasData;
+  return hasData;
 }
 
 // Tri-state visibility: explicit pref wins, otherwise show only when there's data.
@@ -632,7 +634,6 @@ function renderPlanBadge(plan) {
 }
 
 function applyPlan(plan) {
-  planSubcaps = (plan && plan.subcaps && typeof plan.subcaps === 'object') ? plan.subcaps : {};
   renderPlanBadge(plan);
 }
 
