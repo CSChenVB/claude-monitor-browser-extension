@@ -1,9 +1,13 @@
 # Local Claude Code settings
 .claude/settings.local.json
+.claude/launch.json
 
 # impeccable design skill (dev tooling, not part of the extension)
 .claude/skills/
 .agents/
+
+# Tauri CLI binary — build tool for the Windows tray app, NOT the extension
+/tauri-cli/
 
 # OS files
 .DS_Store
