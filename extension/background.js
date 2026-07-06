@@ -476,6 +476,9 @@ function clampThreshold(value, fallback) {
 async function checkThresholdNotifications(data) {
   const settings = await getNotifSettings();
   if (!settings.enabled) return;
+  // `notifications` is an optional permission (granted from the options page).
+  // If the user hasn't granted it, the API namespace is absent — skip quietly.
+  if (!chrome.notifications) return;
 
   const { notifState } = await chrome.storage.local.get('notifState');
   const state = (notifState && typeof notifState === 'object') ? notifState : {};
@@ -536,7 +539,7 @@ function formatTimeUntil(epochMs) {
 }
 
 // A click on any usage alert opens the official usage page.
-chrome.notifications.onClicked.addListener((id) => {
+chrome.notifications?.onClicked.addListener((id) => {
   if (!id.startsWith('usage-')) return;
   chrome.notifications.clear(id);
   chrome.tabs.create({ url: 'https://claude.ai/settings/usage', active: true });

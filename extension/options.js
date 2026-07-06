@@ -31,7 +31,29 @@ function flashStatus(text) {
   statusTimer = setTimeout(() => { statusEl.textContent = ''; }, 1500);
 }
 
-function save() {
+// `notifications` is an optional permission, requested from a user gesture the
+// first time notifications are turned on. Chrome no longer disables the whole
+// extension on update because the permission isn't required up front.
+function ensureNotifPermission() {
+  return new Promise((resolve) => {
+    chrome.permissions.contains({ permissions: ['notifications'] }, (has) => {
+      if (has) return resolve(true);
+      chrome.permissions.request({ permissions: ['notifications'] }, (granted) => resolve(Boolean(granted)));
+    });
+  });
+}
+
+async function save() {
+  // Turning notifications on needs the optional permission; if the user denies
+  // it, revert the toggle and don't persist an enabled state we can't honor.
+  if (enabledEl.checked) {
+    const granted = await ensureNotifPermission();
+    if (!granted) {
+      enabledEl.checked = false;
+      flashStatus('Permission denied');
+      return;
+    }
+  }
   const warnAt = clampThreshold(warnEl.value, DEFAULTS.warnAt);
   // The critical threshold can't sit below the warning one.
   const critAt = Math.max(warnAt, clampThreshold(critEl.value, DEFAULTS.critAt));
@@ -45,7 +67,8 @@ function save() {
 
 [enabledEl, warnEl, critEl].forEach(el => el.addEventListener('change', save));
 
-testBtn.addEventListener('click', () => {
+testBtn.addEventListener('click', async () => {
+  if (!(await ensureNotifPermission())) { flashStatus('Permission denied'); return; }
   chrome.notifications.create('usage-test', {
     type: 'basic',
     iconUrl: 'icons/icon128.png',
