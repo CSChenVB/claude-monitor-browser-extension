@@ -28,6 +28,10 @@
   line-height: 1.45;
   text-align: left;
   overflow: hidden;
+  /* The sidebar is a flex column: without this it can squeeze the panel and
+     silently swallow rows when vertical space runs short. */
+  flex: none;
+  min-height: fit-content;
 }
 
 .cum-panel-dark {
@@ -115,6 +119,10 @@
 
 .cum-panel-body {
   padding: 2px 10px 9px;
+  /* Never taller than ~40% of the viewport — scroll inside the panel instead
+     of losing rows to whatever container claude.ai mounts us in. */
+  max-height: 40vh;
+  overflow-y: auto;
 }
 
 .cum-panel-row {

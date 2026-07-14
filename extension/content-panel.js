@@ -263,6 +263,12 @@ function applyTheme() {
 // A debounced MutationObserver re-mounts it, and upgrades a floating panel to
 // the sidebar once one appears (or degrades back if the sidebar vanishes).
 
+// Set when a sidebar mount turned out to be visually clipped (the sidebar's
+// own overflow/flex layout cut the panel off). Once set, the panel stays in
+// floating mode for the rest of the page lifetime — showing everything in a
+// corner beats showing half a panel in the sidebar.
+let sidebarUnusable = false;
+
 function findSidebar() {
   for (const selector of SIDEBAR_SELECTORS) {
     let node = null;
@@ -274,18 +280,38 @@ function findSidebar() {
 
 function ensureMounted() {
   if (!host || !document.body) return;
-  const sidebar = findSidebar();
+  const sidebar = sidebarUnusable ? null : findSidebar();
   if (sidebar) {
     if (host.parentElement !== sidebar) {
       host.classList.remove('cum-panel-floating');
       sidebar.append(host);
     }
+    checkSidebarClipping();
   } else if (host.parentElement !== document.body) {
     // Fallback: fixed floating panel (bottom-right) instead of disappearing.
     host.classList.add('cum-panel-floating');
     document.body.append(host);
   }
   applyTheme();
+}
+
+// IntersectionObserver reports how much of the panel is actually visible AFTER
+// ancestor overflow clipping — exactly the failure mode where the sidebar's
+// layout swallows part (or all) of the panel. One-shot check per (re)mount;
+// on a bad ratio the panel demotes itself to the floating fallback.
+function checkSidebarClipping() {
+  if (!host || host.classList.contains('cum-panel-floating')) return;
+  const observer = new IntersectionObserver((entries) => {
+    observer.disconnect();
+    const entry = entries[0];
+    // Still mounted in a sidebar but mostly cut off → give up on the sidebar.
+    if (entry && host.parentElement && !host.classList.contains('cum-panel-floating')
+        && entry.intersectionRatio < 0.9) {
+      sidebarUnusable = true;
+      ensureMounted();
+    }
+  });
+  observer.observe(host);
 }
 
 let remountTimer = null;
@@ -307,6 +333,10 @@ function startObservers() {
   // Theme flips only touch <html> attributes; track them separately.
   new MutationObserver(applyTheme)
     .observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-mode', 'data-theme'] });
+
+  // Resizes change how much room the sidebar gives us — re-run the mount
+  // (and its clipping check) so the panel demotes itself if it gets cut off.
+  window.addEventListener('resize', scheduleEnsureMounted);
 }
 
 // ── Init ────────────────────────────────────────────────────────────────────
